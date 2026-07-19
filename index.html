@@ -195,13 +195,13 @@ const BENCH = {
   convoRate:[60,75],           // % connects that are real conversations
   meetRate:[15,30],            // % real convos -> meeting
   dialsPerMeeting:[25,35],     // qualified dials per booked meeting
-  goodCallLen:350,             // successful calls avg 5:50 (Gong)
+  goodCallLen:350,             // successful calls avg 5:50 (aggregate call research)
   talkRatio:"45/55",           // talk/listen
   questions:[11,14],
   touchesToMeet:5,             // 80% of meetings after touch 5
 };
 const OPENER_SCIENCE = [
-  {t:'"How have you been?"', d:"6.6x more likely to succeed (Gong, 90k calls)", good:true},
+  {t:'"How have you been?"', d:"6.6x more likely to succeed (large-scale call studies)", good:true},
   {t:'"The reason for my call is…"', d:"2.1x more meetings when you state it in the first 30s", good:true},
   {t:"Open with a question, not a statement", d:"+25% longer conversations", good:true},
   {t:'"Did I catch you at a bad time?"', d:"40% FEWER meetings booked — never say it", good:false},
@@ -502,7 +502,7 @@ KEYS.push("calllog","recons");
 AppState.calllog=[]; AppState.recons=[];
 
 const VM_SCIENCE=[
- {t:"A voicemail's real job: double your email reply rate",d:"Emails after a VM get 5.87% replies vs 2.73% cold (Gong, 300M calls)",good:true},
+ {t:"A voicemail's real job: double your email reply rate",d:"Emails after a VM get 5.87% replies vs 2.73% cold (large-scale call studies)",good:true},
  {t:"Hard cap: 2 voicemails per prospect, ever",d:"A third VM craters total response to 2.2% — keep calling, stop recording",good:true},
  {t:"Under 20 seconds, value inside the first 8",d:"Most prospects READ the transcription — front-load who/why",good:true},
  {t:"VM + email within 5 minutes",d:"The pairing beats either channel alone",good:true},
@@ -580,7 +580,7 @@ function logCallEvent(disp){
   saveState("calllog");
 }
 
-/* ---- branching call flow (30MPC-style structure + Gong data) ---- */
+/* ---- branching call flow (research-backed structure) ---- */
 const CALL_FLOW={
  open:{title:"THE OPEN — FIRST 15 SECONDS",steps:[
    {say:'"Hey [Name]… how have you been?"',why:"6.6x success rate. Pause. Let them react — confusion is fine, it's a pattern interrupt."},
@@ -826,8 +826,8 @@ function TBoard({go}){
       h(FunnelMath),
       h(OpenerScience)),
     h("div",{className:"grid g2",style:{marginBottom:16}},
-      h(ScienceList,{title:"CALL MECHANICS — WHAT WINNING CALLS DO",tag:"GONG · TONALITY",color:"var(--violet)",items:COLD_MECHANICS}),
-      h(ScienceList,{title:"VOICEMAIL DOCTRINE",tag:"300M CALLS",color:"var(--amber)",items:VM_SCIENCE})),
+      h(ScienceList,{title:"CALL MECHANICS — WHAT WINNING CALLS DO",tag:"TONALITY",color:"var(--violet)",items:COLD_MECHANICS}),
+      h(ScienceList,{title:"VOICEMAIL DOCTRINE",tag:"CALL DATA",color:"var(--amber)",items:VM_SCIENCE})),
     h("div",{className:"row",style:{marginBottom:10,justifyContent:"space-between"}},
       h("div",{className:"eyebrow",style:{fontSize:10}},"YOUR BLOCKS — BUILD WHATEVER YOU WANT (FORGE ▸ BLOCK BUILDER)"),
       h("button",{className:"btn sm",onClick:()=>go("forge","blocks")},"+ NEW BLOCK")),
@@ -2739,7 +2739,7 @@ function sparSystem(P,level){
 }
 function sparGradePrompt(P,level,msgs){
   const transcript=msgs.map(m=>(m.role==="user"?"REP: ":"PROSPECT: ")+m.content).join("\n");
-  return "You are an elite cold-call coach (Gong research, 30MPC methodology). Grade this practice cold call. The rep is an SDR at Tulip selling to a "+P.title+" (difficulty: "+level+").\n\nTRANSCRIPT:\n"+transcript+"\n\nGrade against the data: opener ('how have you been?' 6.6x; stating the reason for the call 2.1x; never 'did I catch you at a bad time' which books 40% fewer), pace-setting and confidence (winning cold calls: rep talks ~55% with a ~50s value monologue), discovery quality, objection handling (validate first — 'fair enough' / 'makes sense' converts 2x; 2-second pause), and the close (ONE next step with TWO time options, +40%).\n\nReturn EXACTLY this markdown:\n## SCORE\n(one line: OPENER x/10 · DISCOVERY x/10 · OBJECTIONS x/10 · CLOSE x/10 · OVERALL x/10)\n## WHAT WORKED\n(2-3 bullets quoting the rep's actual words)\n## WHAT COST YOU\n(2-3 bullets: the specific moments that hurt, quoting them)\n## THE TOP-10% VERSION\n(rewrite the rep's 2 weakest lines the way a top performer would say them, plain human language, no em dashes)\n## ONE DRILL\n(one specific thing to practice on the next 10 real dials)\nKeep it under 350 words. Direct, no fluff, no em dashes.";
+  return "You are an elite cold-call coach grounded in large-scale cold-call research. Grade this practice cold call. The rep is an SDR at Tulip selling to a "+P.title+" (difficulty: "+level+").\n\nTRANSCRIPT:\n"+transcript+"\n\nGrade against the data: opener ('how have you been?' 6.6x; stating the reason for the call 2.1x; never 'did I catch you at a bad time' which books 40% fewer), pace-setting and confidence (winning cold calls: rep talks ~55% with a ~50s value monologue), discovery quality, objection handling (validate first — 'fair enough' / 'makes sense' converts 2x; 2-second pause), and the close (ONE next step with TWO time options, +40%).\n\nReturn EXACTLY this markdown:\n## SCORE\n(one line: OPENER x/10 · DISCOVERY x/10 · OBJECTIONS x/10 · CLOSE x/10 · OVERALL x/10)\n## WHAT WORKED\n(2-3 bullets quoting the rep's actual words)\n## WHAT COST YOU\n(2-3 bullets: the specific moments that hurt, quoting them)\n## THE TOP-10% VERSION\n(rewrite the rep's 2 weakest lines the way a top performer would say them, plain human language, no em dashes)\n## ONE DRILL\n(one specific thing to practice on the next 10 real dials)\nKeep it under 350 words. Direct, no fluff, no em dashes.";
 }
 function TSpar(){
   const [phase,setPhase]=useState("setup"); // setup | live | grading | debrief
@@ -3208,7 +3208,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.38 \u00b7 JUL 19 2026 \u00b7 SELF-HEALING EAR")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.39 \u00b7 JUL 19 2026 \u00b7 CLEAN BOARD")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
