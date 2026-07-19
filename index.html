@@ -1508,9 +1508,13 @@ function findObjection(find){
   const all=allObjections();
   return all.find(o=>(o.name||"").toLowerCase().includes(find))||null;
 }
+/* hold the mic stream for the whole listen period so Chrome's one-time
+   permission survives the engine's internal restarts; released on stop */
+function holdMic(stream){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=stream}
+function releaseMic(){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=null}
 function srFatalMsg(err){
   const m={
-    "not-allowed":"MIC BLOCKED. Click the padlock in the address bar, allow the microphone, then toggle again. If you opened the downloaded file directly, use your deployed HTTPS link instead.",
+    "not-allowed":"MIC BLOCKED. Click the mic or padlock icon in the address bar and choose ALLOW ON EVERY VISIT (not \u2018allow this time\u2019), then toggle again. If you opened the downloaded file directly, use your deployed HTTPS link instead.",
     "service-not-allowed":"SPEECH SERVICE BLOCKED BY THE BROWSER. Open the deployed HTTPS link and allow the mic from the padlock menu.",
     "audio-capture":"NO MICROPHONE FOUND. Plug one in or pick an input in system sound settings, then toggle again.",
     "network":"SPEECH SERVICE UNREACHABLE. Chrome's engine needs internet and can be blocked by VPNs or strict corporate proxies.",
@@ -1643,7 +1647,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
     else if(heard.type==="persona"){if(onPersona){onPersona(heard.i);toast("TALK TRACK: "+((D.PERSONAS[heard.i]||{}).title||""))}}
     else{goNode("obj");const o=findObjection(heard.find);if(o)setObjView(o)}
     setHeard(null)};
-  const stopListen=()=>{listenRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}setListening(false)};
+  const stopListen=()=>{listenRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}releaseMic();setListening(false)};
   const toggleListen=async()=>{
     if(listening){stopListen();setMicStatus("");return}
     setMicStatus("");setTick("");hadResultRef.current=false;restartsRef.current=[];
@@ -1652,8 +1656,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
     setMicStatus("REQUESTING MICROPHONE\u2026");
     try{
       if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
-        const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-        stream.getTracks().forEach(t=>t.stop());
+        holdMic(await navigator.mediaDevices.getUserMedia({audio:true}));
       }
     }catch(err){
       const nm=(err&&err.name)||"";
@@ -2755,7 +2758,7 @@ function TSpar(){
   useEffect(()=>{voiceOutRef.current=voiceOut},[voiceOut]);
   useEffect(()=>()=>{micRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}if(timerRef.current)clearTimeout(timerRef.current)},[]);
   const scheduleSend=()=>{if(!handsFreeRef.current)return;if(timerRef.current)clearTimeout(timerRef.current);timerRef.current=setTimeout(()=>{if(busyRef.current){scheduleSend();return}sendRef.current&&sendRef.current()},1400)};
-  const stopMic=()=>{micRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}setMic(false)};
+  const stopMic=()=>{micRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}releaseMic();setMic(false)};
   const speakOut=(t)=>{
     if(!voiceOutRef.current)return;
     if(!(window.speechSynthesis&&window.SpeechSynthesisUtterance))return;
@@ -2779,8 +2782,7 @@ function TSpar(){
     setMicStatus("REQUESTING MICROPHONE\u2026");
     try{
       if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
-        const st=await navigator.mediaDevices.getUserMedia({audio:true});
-        st.getTracks().forEach(tk=>tk.stop());
+        holdMic(await navigator.mediaDevices.getUserMedia({audio:true}));
       }
     }catch(err){
       const nm=(err&&err.name)||"";
@@ -3197,7 +3199,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.36 \u00b7 JUL 19 2026 \u00b7 ANY PROVIDER")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.37 \u00b7 JUL 19 2026 \u00b7 MIC PERSISTENCE")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
