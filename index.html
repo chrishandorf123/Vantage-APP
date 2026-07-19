@@ -1512,6 +1512,7 @@ function findObjection(find){
    permission survives the engine's internal restarts; released on stop */
 function holdMic(stream){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=stream}
 function releaseMic(){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=null}
+function srNetTrack(ref){const now=Date.now();ref.current=(ref.current||[]).filter(t=>now-t<15000);ref.current.push(now);return ref.current.length}
 function srFatalMsg(err){
   const m={
     "not-allowed":"MIC BLOCKED. Click the mic or padlock icon in the address bar and choose ALLOW ON EVERY VISIT (not \u2018allow this time\u2019), then toggle again. If you opened the downloaded file directly, use your deployed HTTPS link instead.",
@@ -1628,7 +1629,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
   const [micStatus,setMicStatus]=useState("");
   const [tick,setTick]=useState("");
   const recRef=useRef(null);const nodeRef=useRef(node);const listenRef=useRef(false);
-  const hadResultRef=useRef(false);const restartsRef=useRef([]);
+  const hadResultRef=useRef(false);const restartsRef=useRef([]);const netErrRef=useRef([]);
   useEffect(()=>{nodeRef.current=node},[node]);
   useEffect(()=>{listenRef.current=listening},[listening]);
   useEffect(()=>()=>{listenRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}},[]);
@@ -1665,7 +1666,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
     }
     try{
       const r=new SR();r.continuous=true;r.interimResults=true;r.lang="en-US";
-      r.onresult=(e)=>{let all="",fin="",conf=1;
+      r.onresult=(e)=>{netErrRef.current=[];setMicStatus(s=>s&&s.indexOf("HICCUP")>-1?"":s);let all="",fin="",conf=1;
         for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];const alt=res[0];
           all+=alt.transcript+" ";
           if(res.isFinal){fin+=alt.transcript+" ";if(typeof alt.confidence==="number"&&alt.confidence>0)conf=Math.min(conf,alt.confidence)}}
@@ -1673,7 +1674,11 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
         if(all){hadResultRef.current=true;setTick(all.slice(-56))}
         fin=fin.trim();
         if(fin)handleFinal(fin,conf);};
-      r.onerror=(e)=>{const msg=srFatalMsg(e&&e.error);if(msg){stopListen();setMicStatus(msg)}};
+      r.onerror=(e)=>{const kind=(e&&e.error)||"";
+        if(kind==="network"){
+          if(srNetTrack(netErrRef)>=4){stopListen();setMicStatus(srFatalMsg("network"));return}
+          setMicStatus("SPEECH SERVICE HICCUP \u2014 RECONNECTING\u2026");return}
+        const msg=srFatalMsg(kind);if(msg){stopListen();setMicStatus(msg)}};
       r.onend=()=>{
         if(!listenRef.current)return;
         const now=Date.now();
@@ -2750,7 +2755,7 @@ function TSpar(){
   const [micStatus,setMicStatus]=useState("");
   const [liveTick,setLiveTick]=useState("");
   const recRef=useRef(null);const micRef=useRef(false);const speakingRef=useRef(false);
-  const sendRef=useRef(null);const timerRef=useRef(null);const hadResultRef=useRef(false);const restartsRef=useRef([]);
+  const sendRef=useRef(null);const timerRef=useRef(null);const hadResultRef=useRef(false);const restartsRef=useRef([]);const netErrRef=useRef([]);
   const handsFreeRef=useRef(true);const busyRef=useRef(false);const voiceOutRef=useRef(true);
   useEffect(()=>{micRef.current=mic},[mic]);
   useEffect(()=>{handsFreeRef.current=handsFree},[handsFree]);
@@ -2791,14 +2796,18 @@ function TSpar(){
     }
     try{
       const r=new SR();r.continuous=true;r.interimResults=true;r.lang="en-US";
-      r.onresult=(e)=>{let all="",fin="";
+      r.onresult=(e)=>{netErrRef.current=[];setMicStatus(s=>s&&s.indexOf("HICCUP")>-1?"":s);let all="",fin="";
         for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];all+=res[0].transcript+" ";if(res.isFinal)fin+=res[0].transcript+" "}
         all=all.trim();if(all){hadResultRef.current=true;setLiveTick(all.slice(-64))}
         fin=fin.trim();if(!fin)return;
         setInput(p=>((p?p+" ":"")+fin));
         scheduleSend();
       };
-      r.onerror=(e)=>{const msg=srFatalMsg(e&&e.error);if(msg){stopMic();setMicStatus(msg)}};
+      r.onerror=(e)=>{const kind=(e&&e.error)||"";
+        if(kind==="network"){
+          if(srNetTrack(netErrRef)>=4){stopMic();setMicStatus(srFatalMsg("network"));return}
+          setMicStatus("SPEECH SERVICE HICCUP \u2014 RECONNECTING\u2026");return}
+        const msg=srFatalMsg(kind);if(msg){stopMic();setMicStatus(msg)}};
       r.onend=()=>{
         if(!micRef.current||speakingRef.current)return;
         const now=Date.now();
@@ -3199,7 +3208,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.37 \u00b7 JUL 19 2026 \u00b7 MIC PERSISTENCE")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.38 \u00b7 JUL 19 2026 \u00b7 SELF-HEALING EAR")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
