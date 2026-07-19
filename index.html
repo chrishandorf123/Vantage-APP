@@ -740,7 +740,7 @@ function FunnelMath(){
         h("div",{className:"mono dim",style:{fontSize:9,marginTop:4}},pct(t.dials,perDay)+"% of "+perDay))));
 }
 function OpenerScience(){
-  return h(Blk,{title:"WHAT THE DATA SAYS — FIRST 30 SECONDS",tag:"GONG · 90K CALLS",color:"var(--go)"},
+  return h(Blk,{title:"WHAT THE DATA SAYS — FIRST 30 SECONDS",tag:"OPENER DATA",color:"var(--go)"},
     OPENER_SCIENCE.map((o,i)=>h("div",{key:i,className:"row",style:{padding:"6px 0",borderBottom:i<OPENER_SCIENCE.length-1?"1px solid var(--hair)":"none",alignItems:"flex-start"}},
       h("span",{style:{fontFamily:"var(--mono)",fontWeight:700,fontSize:12,color:o.good?"var(--go)":"var(--alarm)",flexShrink:0,width:16}},o.good?"✓":"✕"),
       h("div",null,
@@ -3208,7 +3208,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.39 \u00b7 JUL 19 2026 \u00b7 CLEAN BOARD")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.40 \u00b7 JUL 19 2026 \u00b7 CLEAN BOARD II")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
