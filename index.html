@@ -27,6 +27,7 @@
   --shadow:0 12px 30px rgba(0,0,0,.5); --shadow-sm:0 2px 8px rgba(0,0,0,.4);
 }
 *{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased}
 ::selection{background:var(--sig);color:#fff}
@@ -160,6 +161,36 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
   .modal{width:94vw;max-height:88dvh}
   table{display:block;overflow-x:auto;max-width:100%}
   h1{font-size:20px}
+}
+@media(max-width:820px){
+  .rail{display:flex;flex-wrap:nowrap;overflow:hidden;align-items:stretch;gap:0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+  .rail-btn[data-m="board"],.rail-btn[data-m="dial"],.rail-btn[data-m="targets"],.rail-btn[data-m="stats"],.rail-more,.rail-search{display:flex;flex:1 1 0%;width:0;min-width:0!important;max-width:none;flex-direction:column;align-items:center;justify-content:center;gap:1px;margin:0;padding:8px 1px 7px;border:none;border-radius:0;overflow:hidden;white-space:nowrap}
+  .rail-btn .rl,.rail-search .rl{font-size:7.5px;letter-spacing:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .rail-btn .ri,.rail-search .ri{font-size:16px;line-height:1}
+  .rail-btn[data-m="dial"] .ri{font-size:18px}
+  .rail-btn.on,.rail-btn[data-m="dial"]{border-radius:8px}
+}
+@media(max-width:820px){
+  /* slim top: five stats one dense row, window + hubs share a slim second row */
+  .andon{padding:2px 3px;gap:1px}
+  .andon>.andon-cell:nth-child(-n+5){flex:1 1 0;min-width:0!important;padding:2px 3px}
+  .andon>.andon-cell:nth-child(n+6){flex:1 1 46%;min-width:0!important;padding:2px 5px}
+  .andon .al{font-size:6.5px}
+  .andon .av{font-size:13px}
+  .andon button,.andon .btn{min-height:26px!important;padding:3px 6px!important;font-size:8.5px!important}
+  /* the clock loses its penthouse on phones */
+  .lc-wrap .bigstat{font-size:36px!important}
+  .call-top{padding:8px 10px!important}
+  .call-top .btn.big{margin-top:8px!important;width:100%!important}
+}
+@media(max-width:820px){
+  /* messages: template list stacks above the editor */
+  .msg-split{grid-template-columns:1fr!important}
+  /* modals can no longer smuggle inline widths past the cap */
+  .modal{width:min(94vw,640px)!important;max-width:94vw!important}
+  /* structural guarantee: no page scrolls sideways, ever; contained scrollers still work */
+  .main{overflow-x:hidden}
+  .stage a,.blk a{overflow-wrap:anywhere}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
@@ -1111,7 +1142,7 @@ function LiveCall({queueIds,blitz,onEnd}){
       ),
     /* right: timer + control */
     h("div",{style:{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}},
-      h("div",{style:{padding:"18px 20px",borderBottom:"2px solid var(--line)",textAlign:"center",background:"var(--panel)"}},
+      h("div",{className:"call-top",style:{padding:"18px 20px",borderBottom:"2px solid var(--line)",textAlign:"center",background:"var(--panel)"}},
         h("div",{className:"bigstat",style:{fontSize:64,color:connected?"var(--go)":"var(--dim)"}},fmtClock(sec)),
         talkHint?h("div",{className:"stamp",style:{color:talkHint.c,borderColor:talkHint.c,marginTop:6}},talkHint.t)
           :h("div",{className:"mono dim",style:{fontSize:10,marginTop:6}},"successful calls average 5:50 · failed ones 3:14"),
@@ -2409,7 +2440,7 @@ function TMessages(){
           h("button",{className:"btn sm",onClick:()=>startEdit(tpl)},"✎ EDIT"),
           h("button",{className:"btn sm",disabled:ai.busy,onClick:aiDraft},ai.busy?"THINKING…":"✦ AI REWRITE"),
           h("button",{className:"btn sm ghost",onClick:()=>{if(confirm("Delete template?"))delTpl(tpl)}},"✕")),
-        h("div",{className:"grid",style:{gridTemplateColumns:"280px 1fr",gap:16,alignItems:"start"}},
+        h("div",{className:"grid msg-split",style:{gridTemplateColumns:"280px 1fr",gap:16,alignItems:"start"}},
           h(Blk,{title:"FILL VARIABLES",flat:true,pad:"12px"},
             h(Field,{label:"PULL FROM TARGET"},h("select",{style:{width:"100%"},value:targetPick,onChange:e=>applyTarget(e.target.value)},h("option",{value:""},"— manual —"),AppState.targets.map(t=>h("option",{key:t.id,value:t.id},(t.name||"?")+" · "+(t.company||""))))),
             h(Field,{label:"CASE STUDY"},h("select",{style:{width:"100%"},value:csPick,onChange:e=>applyCase(e.target.value)},h("option",{value:""},"— pick proof point —"),D.CASE_STUDIES.map((c,i)=>h("option",{key:i,value:i},c.co+" ("+c.tag+")")))),
@@ -3387,7 +3418,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.47 \u00b7 JUL 19 2026 \u00b7 ONE THUMB")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.50 \u00b7 JUL 19 2026 \u00b7 EVERY TAB")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
