@@ -350,7 +350,7 @@ const todayKey = ()=>{const d=new Date();return d.getFullYear()+"-"+String(d.get
 const blankDay = ()=>({date:todayKey(),dials:0,connects:0,vms:0,gate:0,convos:0,meetings:0,ni:0,cb:0});
 
 const AppState = {
-  settings:{name:"Chris",number:"",meetingsPerWeek:5,accent:"sig",bookingLink:""},
+  settings:{name:"Chris",number:"",meetingsPerWeek:5,accent:"sig",bookingLink:"",stt:"auto"},
   hub:"",                // active vertical hub ("" = stock/base messaging)
   scores:[],             // call craft scorecards: {d:dateKey, v:[0/1 x6]}
   targets:[],            // {id,name,title,personaIdx,company,phone,hub,status,touches,notes,createdAt,lastTouch}
@@ -1579,6 +1579,23 @@ function findObjection(find){
 /* hold the mic stream for the whole listen period so Chrome's one-time
    permission survives the engine's internal restarts; released on stop */
 function holdMic(stream){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=stream}
+/* ---- Deepgram streaming ear: proxy mints a 30s token, browser streams straight to wss ---- */
+const DG={ws:null,mr:null,keep:false,stream:null,h:null};
+async function dgToken(){const b=await getProxyUrl();if(!b)throw new Error("NO_PROXY");const r=await fetch(b+"/api/stt-token");const j=await r.json();if(!j||!j.ok||!j.token)throw new Error((j&&j.error)||"NO_DEEPGRAM");return j.token}
+function dgKeyterms(){try{const t=(D.ACRO||[]).map(a=>a[0]).concat((D.COMPETITORS||[]).map(c=>c.n||c.name||"")).concat(["Tulip","traveler","travelers"]).filter(Boolean).slice(0,45);return t.map(x=>"&keyterm="+encodeURIComponent(x)).join("")}catch(e){return ""}}
+async function dgStart(stream,h){
+  const token=await dgToken();
+  const url="wss://api.deepgram.com/v1/listen?model=nova-3&language=en-US&smart_format=true&interim_results=true&endpointing=300&utterance_end_ms=1200"+dgKeyterms()+"&access_token="+encodeURIComponent(token);
+  const ws=new WebSocket(url);
+  DG.ws=ws;DG.stream=stream;DG.h=h;
+  ws.onopen=()=>{h.onStatus&&h.onStatus("");try{if(stream&&window.MediaRecorder){const mr=new MediaRecorder(stream,{mimeType:"audio/webm;codecs=opus"});DG.mr=mr;mr.ondataavailable=e=>{if(e.data&&e.data.size&&ws.readyState===1)ws.send(e.data)};mr.start(250)}}catch(e){}};
+  ws.onmessage=ev=>{try{const m=JSON.parse(ev.data);if(m.type!=="Results")return;const alt=m.channel&&m.channel.alternatives&&m.channel.alternatives[0];if(!alt)return;const t=(alt.transcript||"").trim();if(!t)return;if(m.is_final){h.onFinal&&h.onFinal(t,alt.confidence==null?1:alt.confidence)}else{h.onInterim&&h.onInterim(t)}}catch(e){}};
+  ws.onclose=()=>{try{DG.mr&&DG.mr.state!=="inactive"&&DG.mr.stop()}catch(e){}DG.mr=null;DG.ws=null;
+    if(DG.keep){h.onStatus&&h.onStatus("SPEECH LINK HICCUP \u2014 RECONNECTING\u2026");
+      setTimeout(()=>{if(DG.keep&&DG.stream!==undefined)dgStart(DG.stream,DG.h).catch(()=>{h.onFatal&&h.onFatal("DEEPGRAM UNREACHABLE \u2014 tap LISTEN again for the browser ear")})},700)}};
+  ws.onerror=()=>{};
+}
+function dgStop(){DG.keep=false;try{DG.mr&&DG.mr.state!=="inactive"&&DG.mr.stop()}catch(e){}try{DG.ws&&DG.ws.close()}catch(e){}DG.mr=null;DG.ws=null}
 function releaseMic(){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=null}
 function srNetTrack(ref){const now=Date.now();ref.current=(ref.current||[]).filter(t=>now-t<15000);ref.current.push(now);return ref.current.length}
 function srFatalMsg(err){
@@ -1696,6 +1713,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
   const [listening,setListening]=useState(false);
   const [micStatus,setMicStatus]=useState("");
   const [tick,setTick]=useState("");
+  const [ear,setEar]=useState("sr");
   const recRef=useRef(null);const nodeRef=useRef(node);const listenRef=useRef(false);
   const hadResultRef=useRef(false);const restartsRef=useRef([]);const netErrRef=useRef([]);
   useEffect(()=>{nodeRef.current=node},[node]);
@@ -1716,7 +1734,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
     else if(heard.type==="persona"){if(onPersona){onPersona(heard.i);toast("TALK TRACK: "+((D.PERSONAS[heard.i]||{}).title||""))}}
     else{goNode("obj");const o=findObjection(heard.find);if(o)setObjView(o)}
     setHeard(null)};
-  const stopListen=()=>{listenRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}releaseMic();setListening(false)};
+  const stopListen=()=>{listenRef.current=false;dgStop();try{recRef.current&&recRef.current.stop()}catch(e){}releaseMic();setListening(false)};
   const toggleListen=async()=>{
     if(listening){stopListen();setMicStatus("");return}
     setMicStatus("");setTick("");hadResultRef.current=false;restartsRef.current=[];
@@ -1725,14 +1743,33 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
     setMicStatus("REQUESTING MICROPHONE\u2026");
     try{
       if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
-        holdMic(await navigator.mediaDevices.getUserMedia({audio:true}));
+        const __st=await navigator.mediaDevices.getUserMedia({audio:true});holdMic(__st);window.__vStream=__st;
       }
     }catch(err){
       const nm=(err&&err.name)||"";
       setMicStatus(nm==="NotAllowedError"?srFatalMsg("not-allowed"):nm==="NotFoundError"?srFatalMsg("audio-capture"):("MIC UNAVAILABLE: "+(nm||"unknown error")));
       return;
     }
-    try{
+    const __mode=(AppState.settings&&AppState.settings.stt)||"auto";
+     const __base=await getProxyUrl();
+     if(__mode!=="browser"&&__base&&!(window.__dgDown&&__mode==="auto")){
+       try{
+         setEar("dg");DG.keep=true;
+         await dgStart(window.__vStream,{
+           onFinal:(t,c)=>{hadResultRef.current=true;handleFinal(t,c==null?1:c)},
+           onInterim:(t)=>setTick(String(t||"").slice(-64)),
+           onStatus:(s)=>setMicStatus(s||""),
+           onFatal:(m)=>{window.__dgDown=true;stopListen();setMicStatus(m)}
+         });
+         listenRef.current=true;setListening(true);setMicStatus("");
+         return;
+       }catch(e){
+         window.__dgDown=true;setEar("sr");
+         if(__mode==="dg"){setMicStatus("DEEPGRAM UNREACHABLE \u2014 "+((e&&e.message)||"token failed")+". Set EAR to AUTO or BROWSER in Forge, or add DEEPGRAM_API_KEY to the proxy.");releaseMic();return}
+         setMicStatus("DEEPGRAM DOWN \u2014 BROWSER EAR ACTIVE");
+       }
+     } else { setEar("sr"); }
+     try{
       const r=new SR();r.continuous=true;r.interimResults=true;r.lang="en-US";
       r.onresult=(e)=>{netErrRef.current=[];setMicStatus(s=>s&&s.indexOf("HICCUP")>-1?"":s);let all="",fin="",conf=1;
         for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];const alt=res[0];
@@ -1771,6 +1808,7 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
       h("span",{className:"stamp",style:{color:"var(--sig)",borderColor:"var(--sig)"}},n.ph),
       h("span",{className:"mono dim",style:{fontSize:8.5,flex:1}},trail.join(" → ")),
       h("button",{className:"chip"+(listening?" on":""),onClick:toggleListen,title:"Keyword-spots the call through your mic and suggests the branch. Nothing is stored."},listening?"● LIVE LISTEN":"LIVE LISTEN"),
+      listening&&h("span",{className:"mono dim",style:{fontSize:8,marginLeft:2}},ear==="dg"?"DEEPGRAM":"BROWSER"),
       h("button",{className:"chip",onClick:()=>setShowSetup(s=>!s),title:"How to hear both sides of the call"},"AUDIO?"),
       h("button",{className:"chip"+(aiOn?" on":""),onClick:()=>{setAiOn(x=>!x);setAiNote("")},title:"When nothing else matches a substantive prospect line, a short AI call picks the best move from your own topics, objections, and battle cards and writes the exact next line. Uses your API key."},aiBusy?"\u2733 AI\u2026":"\u2733 AI"),
       (listening||tick)&&h("span",{className:"mono",style:{fontSize:8.5,color:"var(--go)",maxWidth:230,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},tick?("\u201c\u2026"+tick+"\u201d"):"listening\u2026")),
@@ -2691,7 +2729,10 @@ function TForge({initialSection}){
         h(Field,{label:"YOUR NAME"},h("input",{style:{width:"100%"},value:s.name,onChange:e=>setS("name",e.target.value)})),
         h(Field,{label:"CALLBACK NUMBER"},h("input",{style:{width:"100%"},value:s.number||"",onChange:e=>setS("number",e.target.value),placeholder:"617-555-0100"})),
         h(Field,{label:"MEETINGS / WEEK QUOTA"},h("input",{type:"number",min:1,style:{width:"100%"},value:s.meetingsPerWeek,onChange:e=>setS("meetingsPerWeek",+e.target.value||1)})))),
-    h(Blk,{title:"AI ENGINE \u2014 PROXY CONNECTION",style:{marginBottom:16},color:"var(--violet)"},
+    h(Blk,{title:"SPEECH EAR \u2014 LIVE TRANSCRIPTION",style:{marginBottom:16},color:"var(--go)"},
+       h("div",{className:"mono dim",style:{fontSize:10,lineHeight:1.7,marginBottom:8}},"BROWSER uses the built-in Chrome/Edge engine (free, but network-fussy). DEEPGRAM streams through a 30-second token from your proxy for a faster, tougher ear with manufacturing vocabulary boosted \u2014 needs DEEPGRAM_API_KEY set on the proxy. AUTO tries Deepgram and falls back to the browser."),
+       h("div",{className:"row",style:{gap:6}},[["auto","AUTO"],["dg","DEEPGRAM"],["browser","BROWSER"]].map(([m,lb])=>h("button",{key:m,className:"chip"+(((s.stt||"auto"))===m?" on":""),onClick:()=>setS("stt",m)},lb)))),
+     h(Blk,{title:"AI ENGINE \u2014 PROXY CONNECTION",style:{marginBottom:16},color:"var(--violet)"},
       h("div",{className:"mono dim",style:{fontSize:10,lineHeight:1.7,marginBottom:10}},"All AI features (copilot, SPAR, RECON, briefs) call your VANTAGE proxy. Your AI key (OpenAI or Anthropic, the proxy detects it) lives only on that server, never in this browser. Status: ",h("b",{style:{color:keyStatus.startsWith("PROXY")?"var(--go)":"var(--amber)"}},keyStatus)),
       h("div",{className:"row",style:{flexWrap:"wrap"}},
         h("input",{style:{flex:1,minWidth:220},placeholder:"https://vantage-proxy.onrender.com",value:key,onChange:e=>setKey(e.target.value)}),
@@ -2837,7 +2878,7 @@ function TSpar(){
   useEffect(()=>{voiceOutRef.current=voiceOut},[voiceOut]);
   useEffect(()=>()=>{micRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}if(timerRef.current)clearTimeout(timerRef.current)},[]);
   const scheduleSend=()=>{if(!handsFreeRef.current)return;if(timerRef.current)clearTimeout(timerRef.current);timerRef.current=setTimeout(()=>{if(busyRef.current){scheduleSend();return}sendRef.current&&sendRef.current()},1400)};
-  const stopMic=()=>{micRef.current=false;try{recRef.current&&recRef.current.stop()}catch(e){}releaseMic();setMic(false)};
+  const stopMic=()=>{micRef.current=false;dgStop();try{recRef.current&&recRef.current.stop()}catch(e){}releaseMic();setMic(false)};
   const speakOut=(t)=>{
     if(!voiceOutRef.current)return;
     if(!(window.speechSynthesis&&window.SpeechSynthesisUtterance))return;
@@ -2861,14 +2902,29 @@ function TSpar(){
     setMicStatus("REQUESTING MICROPHONE\u2026");
     try{
       if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
-        holdMic(await navigator.mediaDevices.getUserMedia({audio:true}));
+        const __st=await navigator.mediaDevices.getUserMedia({audio:true});holdMic(__st);window.__vStream=__st;
       }
     }catch(err){
       const nm=(err&&err.name)||"";
       setMicStatus(nm==="NotAllowedError"?srFatalMsg("not-allowed"):nm==="NotFoundError"?srFatalMsg("audio-capture"):("MIC UNAVAILABLE: "+(nm||"unknown error")));
       return;
     }
-    try{
+    const __mode=(AppState.settings&&AppState.settings.stt)||"auto";
+     const __base=await getProxyUrl();
+     if(__mode!=="browser"&&__base&&!(window.__dgDown&&__mode==="auto")){
+       try{
+         DG.keep=true;
+         await dgStart(window.__vStream,{
+           onFinal:(t)=>{if(speakingRef.current)return;const s=String(t||"").trim();if(!s)return;setLiveTick(s.slice(-64));setInput(p=>((p?p+" ":"")+s));scheduleSend()},
+           onInterim:(t)=>{if(speakingRef.current)return;setLiveTick(String(t||"").slice(-64))},
+           onStatus:(s)=>setMicStatus(s||""),
+           onFatal:(m)=>{window.__dgDown=true;stopMic();setMicStatus(m)}
+         });
+         micRef.current=true;setMic(true);setMicStatus("");
+         return;
+       }catch(e){window.__dgDown=true;if(__mode==="dg"){setMicStatus("DEEPGRAM UNREACHABLE \u2014 set EAR to AUTO or BROWSER in Forge.");releaseMic();return}setMicStatus("DEEPGRAM DOWN \u2014 BROWSER EAR ACTIVE")}
+     }
+     try{
       const r=new SR();r.continuous=true;r.interimResults=true;r.lang="en-US";
       r.onresult=(e)=>{netErrRef.current=[];setMicStatus(s=>s&&s.indexOf("HICCUP")>-1?"":s);let all="",fin="";
         for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];all+=res[0].transcript+" ";if(res.isFinal)fin+=res[0].transcript+" "}
@@ -3402,7 +3458,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.58 \u00b7 JUL 20 2026 \u00b7 RECON FIRST")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.59 \u00b7 JUL 20 2026 \u00b7 DEEPGRAM EAR")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
