@@ -301,9 +301,10 @@ const AppState = {
   customObjections:[],
   personaEdits:{},       // idx -> partial persona
   blocks:[],             // custom board blocks {id,type,title,content,color}
+  scratch:"",            // dial-floor scratchpad, persists across sessions
   loaded:false,
 };
-const KEYS=["settings","hub","scores","targets","stats","templates","cadences","customObjections","personaEdits","blocks"];
+const KEYS=["settings","hub","scores","targets","stats","templates","cadences","customObjections","personaEdits","blocks","scratch"];
 async function loadState(){
   for(const k of KEYS){const v=await store.get(k);if(v!=null)AppState[k]=v;}
   AppState.loaded=true;
@@ -910,6 +911,7 @@ function DialSetup({onStart}){
         h("div",null,"⑤ Leave real 20 to 30 second voicemails. Completed VMs read as human behavior"))));
 }
 function LiveCall({queueIds,blitz,onEnd}){
+  const [scr,setScr]=useState(AppState.scratch||"");
   const [pendScore,setPendScore]=useState(null);
   const [pOver,setPOver]=useState(null);
   const discOutRef=useRef(null);
@@ -1068,7 +1070,10 @@ function LiveCall({queueIds,blitz,onEnd}){
         h("button",{className:"btn big go",style:{width:"100%",marginTop:10},onClick:()=>advance("MEETING")},"★ MEETING BOOKED"),
         h("div",{className:"row",style:{marginTop:16,justifyContent:"space-between"}},
           h("span",{className:"mono dim",style:{fontSize:9.5}},"session: "+log.length+" dials · "+log.filter(l=>["CONVO","MEETING","NI","CB"].includes(l.disp)).length+" connects · "+log.filter(l=>l.disp==="MEETING").length+" booked"),
-          h("button",{className:"btn sm ghost",onClick:()=>onEnd(log)},"■ END SESSION")))));
+          h("button",{className:"btn sm ghost",onClick:()=>onEnd(log)},"■ END SESSION")),
+         h("div",{style:{marginTop:16}},
+           h("div",{className:"eyebrow",style:{fontSize:10,marginBottom:6}},"SCRATCHPAD — YOURS · SAVES ITSELF · SURVIVES SESSIONS AND RESTARTS"),
+           h("textarea",{rows:4,style:{width:"100%"},placeholder:"Anything worth keeping: callback promises, intel, reminders, gold lines you heard…",value:scr,onChange:e=>{const v=e.target.value;setScr(v);AppState.scratch=v;saveState("scratch")}})))));
 }
 function BookedPanel({booked,notes,onNext,onEnd}){
   const [brief,setBrief]=useState("");const [bz,setBz]=useState(false);
@@ -3314,7 +3319,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.42 \u00b7 JUL 19 2026 \u00b7 GLOSSARY II")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.43 \u00b7 JUL 19 2026 \u00b7 SCRATCHPAD")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
