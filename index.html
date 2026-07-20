@@ -101,6 +101,19 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
 .rail-btn{border-radius:8px;margin:2px 6px;border-bottom:none;padding:8px 2px 7px}
 .rail-btn.on{background:var(--sigbg);color:var(--sig)}
 .rail-grp{background:transparent;border-bottom:none;text-align:left;padding:10px 12px 3px}
+@media(max-width:820px){
+  .g3,.g4{grid-template-columns:1fr 1fr}
+  .lc-wrap{flex-direction:column!important;height:auto!important;overflow:visible!important}
+  .lc-left{width:100%!important;min-width:0!important;border-right:none!important;border-bottom:2px solid var(--line)!important;max-height:none!important}
+  .split{flex-direction:column;height:auto;overflow:visible}
+  .split-list{width:100%;max-height:40vh}
+  input,textarea,select{font-size:16px}
+}
+@media(max-width:640px){
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .andon{overflow-x:auto}
+  .stage{padding:12px 10px 60px}
+}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
 /* ---- layout ---- */
@@ -910,8 +923,13 @@ function DialSetup({onStart}){
         h("div",null,"④ Ask RevOps to register your lines with the carrier registries and rotate anything flagged"),
         h("div",null,"⑤ Leave real 20 to 30 second voicemails. Completed VMs read as human behavior"))));
 }
-function LiveCall({queueIds,blitz,onEnd}){
+function ScratchPad(){
   const [scr,setScr]=useState(AppState.scratch||"");
+  return h("div",{style:{marginTop:16}},
+    h("div",{className:"eyebrow",style:{fontSize:10,marginBottom:6}},"SCRATCHPAD — YOURS · SAVES ITSELF · FOLLOWS YOU THROUGH THE SESSION"),
+    h("textarea",{rows:4,style:{width:"100%"},placeholder:"Anything worth keeping: callback promises, intel, reminders, gold lines you heard…",value:scr,onChange:e=>{const v=e.target.value;setScr(v);AppState.scratch=v;saveState("scratch")}}));
+}
+function LiveCall({queueIds,blitz,onEnd}){
   const [pendScore,setPendScore]=useState(null);
   const [pOver,setPOver]=useState(null);
   const discOutRef=useRef(null);
@@ -976,11 +994,11 @@ function LiveCall({queueIds,blitz,onEnd}){
   };
   const talkHint=sec>0?(sec<210?{t:"BUILD — keep asking",c:"var(--amber)"}:sec<350?{t:"GOOD DEPTH — drive to next step",c:"var(--go)"}:{t:"CLOSE NOW — one step, two times",c:"var(--sig)"}):null;
   if(booked)return h(BookedPanel,{booked,notes,onNext:nextCall,onEnd:()=>onEnd(log)});
-  return h("div",{style:{display:"flex",height:"calc(100vh - 58px)",overflow:"hidden"}},
+  return h("div",{className:"lc-wrap",style:{display:"flex",height:"calc(100vh - 58px)",overflow:"hidden"}},
     showObj&&h(ObjOverlay,{onClose:()=>setShowObj(false)}),
     pendScore&&h(ScoreOverlay,{onDone:()=>setPendScore(null)}),
     /* left: prospect + talk track */
-    h("div",{style:{width:"46%",minWidth:340,borderRight:"2px solid var(--line)",display:"flex",flexDirection:"column",overflow:"hidden"}},
+    h("div",{className:"lc-left",style:{width:"46%",minWidth:340,borderRight:"2px solid var(--line)",display:"flex",flexDirection:"column",overflow:"hidden"}},
       h("div",{style:{padding:"14px 16px",borderBottom:"2px solid var(--line)",background:"var(--panel)"}},
         blitz&&blitz.min>0&&h(BlitzStrip,{blitz,dials:log.length}),
         target&&target.tz&&tzWindow(target.tz)&&h("div",{className:"mono",style:{fontSize:9.5,fontWeight:700,color:tzWindow(target.tz).c,marginBottom:8}},"⏰ PROSPECT LOCAL: "+tzWindow(target.tz).label),
@@ -1071,9 +1089,7 @@ function LiveCall({queueIds,blitz,onEnd}){
         h("div",{className:"row",style:{marginTop:16,justifyContent:"space-between"}},
           h("span",{className:"mono dim",style:{fontSize:9.5}},"session: "+log.length+" dials · "+log.filter(l=>["CONVO","MEETING","NI","CB"].includes(l.disp)).length+" connects · "+log.filter(l=>l.disp==="MEETING").length+" booked"),
           h("button",{className:"btn sm ghost",onClick:()=>onEnd(log)},"■ END SESSION")),
-         h("div",{style:{marginTop:16}},
-           h("div",{className:"eyebrow",style:{fontSize:10,marginBottom:6}},"SCRATCHPAD — YOURS · SAVES ITSELF · SURVIVES SESSIONS AND RESTARTS"),
-           h("textarea",{rows:4,style:{width:"100%"},placeholder:"Anything worth keeping: callback promises, intel, reminders, gold lines you heard…",value:scr,onChange:e=>{const v=e.target.value;setScr(v);AppState.scratch=v;saveState("scratch")}})))));
+         h(ScratchPad))));
 }
 function BookedPanel({booked,notes,onNext,onEnd}){
   const [brief,setBrief]=useState("");const [bz,setBz]=useState(false);
@@ -1125,7 +1141,7 @@ function BookedPanel({booked,notes,onNext,onEnd}){
         h("span",{className:"mono dim",style:{fontSize:9.5}},"MEDDPICC-style · uses your notes + persona · your key (Forge)"))),
     h("div",{className:"row"},
       h("button",{className:"btn big primary grow",onClick:onNext},"▶ NEXT DIAL"),
-      h("button",{className:"btn big",onClick:onEnd},"END SESSION")));
+      h("button",{className:"btn big",onClick:onEnd},"END SESSION")),h(ScratchPad));
 }
 function SessionSummary({log,blitz,onDone}){
   const dials=log.length;
@@ -1182,7 +1198,7 @@ function SessionSummary({log,blitz,onDone}){
         connects>0&&meetings===0?h("div",null,"▸ Connects without bookings → audit the first 60 seconds and the close. Benchmark: strong reps book 1 in 3 real conversations."):null,
         meetings>0?h("div",null,"▸ "+meetings+" booked. Law of Replacement: add "+(meetings*2)+" fresh targets to the queue today."):null,
         h("div",null,"▸ Every no-answer still counts: 80% of meetings come after touch 5. The cadence keeps working while you sleep."))),
-    h("button",{className:"btn big primary",onClick:onDone},"BACK TO LINE BOARD"));
+    h("button",{className:"btn big primary",onClick:onDone},"BACK TO LINE BOARD"),h(ScratchPad));
 }
 function gfill(s,c){return String(s||"").replace(/\[Name\]/g,(c&&c.name)||"there").replace(/\[Company\]/g,(c&&c.company)||"your team").replace(/\[number\]/g,(c&&c.number)||"my number")}
 const OBJ_KW=[
@@ -3319,7 +3335,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.43 \u00b7 JUL 19 2026 \u00b7 SCRATCHPAD")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.44 \u00b7 JUL 19 2026 \u00b7 POCKET MODE")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
