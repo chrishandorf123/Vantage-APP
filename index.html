@@ -3171,12 +3171,34 @@ const GLOSS=[
  {t:"Poka-yoke",cat:"LEAN",d:"Error-proofing a process so mistakes are physically or logically impossible: guided steps, interlocks, forced checks.",w:"Say mistake-proofing on calls; the Japanese term can misfire. Guided work instructions are poka-yoke in software."},
  {t:"5S",cat:"LEAN",d:"A workplace organization method: sort, set in order, shine, standardize, sustain.",w:"5S audits on clipboards are common and hated. Another easy first-app story."},
  {t:"Standard work",cat:"LEAN",d:"The current best-known way to do a task, documented so everyone does it the same until someone improves it.",w:"Ask how they know standard work is actually followed at two in the morning."},
- {t:"Disposition",cat:"SALES FLOOR",d:"How a call ended, logged: no answer, conversation, callback, meeting booked. Your dispositions feed your stats and follow-ups.",w:"Log every call honestly. Your Funnel Math is only as real as your dispositions."},
- {t:"Gatekeeper",cat:"SALES FLOOR",d:"The person between you and the buyer: reception, an assistant, a shared line.",w:"Treat gatekeepers as allies with information, not obstacles. The guide has a whole branch for this."},
- {t:"Discovery",cat:"SALES FLOOR",d:"Questions that surface the prospect's real situation, pains, and buying process before any pitch.",w:"VANTAGE tracks six discovery categories live. Green chips before you pitch."},
- {t:"Talk track",cat:"SALES FLOOR",d:"Prepared language for a situation: an opener, an objection response, a transition. A tool, not a script to read.",w:"Internalize talk tracks until they sound like you. SPAR exists for exactly this."},
- {t:"Cold call connect",cat:"SALES FLOOR",d:"A dial where a human answers. Connect rate is connects divided by dials, and it decides how precious each conversation is.",w:"At typical connect rates you get a handful of real conversations per hundred dials. Waste none."},
- {t:"Champion",cat:"SALES FLOOR",d:"Someone inside the account who wants you to win and sells for you when you are not in the room.",w:"Cold calls find champions. The persona picker exists because champions come in titles."}
+ {t:"Work order",cat:"SHOP FLOOR",d:"The authorization to build a specific quantity of a specific product, carrying its routing, materials, and due date.",w:"Ask how a work order gets to the floor and how progress gets back. Both directions are usually paper or shouting."},
+ {t:"Kitting",cat:"SHOP FLOOR",d:"Pre-gathering all the parts and materials a job needs into one kit before work starts.",w:"Bad kitting means operators hunting parts mid-build. Listen for waiting on materials."},
+ {t:"Line clearance",cat:"SHOP FLOOR",d:"Verifying a line is completely free of the previous product, labels, and documents before the next job starts. Mandatory in regulated plants.",w:"A checklist ritual done on paper thousands of times a year. Perfect first-app material."},
+ {t:"Yield",cat:"SHOP FLOOR",d:"Good units out divided by units started. The fraction of production that survives the process.",w:"Yield lives on spreadsheets updated after the fact. Ask when they find out yield dropped."},
+ {t:"In-process check",cat:"QUALITY",d:"A quality measurement taken during production rather than at the end, so drift gets caught while it is still cheap.",w:"Paper check sheets pile up unread. Digital checks can stop the line the moment one fails."},
+ {t:"Calibration",cat:"QUALITY",d:"Periodic verification that measurement tools read true, with records proving every instrument was in date when used.",w:"An out-of-cal tool can invalidate every measurement it touched. Tracking this on spreadsheets is common and scary."},
+ {t:"Traceability",cat:"QUALITY",d:"The ability to trace any product to exactly what went into it, who built it, on what equipment, when.",w:"The word that unlocks pharma, device, and aerospace conversations alike. Ask how long a trace takes them today."},
+ {t:"Statistical process control",cat:"QUALITY",d:"Using live measurements and control charts to spot a process drifting before it makes bad parts. Often shortened to SPC.",w:"SPC on paper means charts nobody plots. Real-time SPC is a named Tulip capability."},
+ {t:"Quarantine",cat:"QUALITY",d:"Physically and systematically isolating suspect material so it cannot be used or shipped until judged.",w:"Ask how they guarantee quarantined parts never sneak back into production. Paper tags is the usual nervous answer."},
+ {t:"Stop ship",cat:"QUALITY",d:"An order freezing all shipments of a product while a problem is investigated.",w:"Days of stop ship equal revenue on hold. Fast root cause, powered by good records, ends them sooner."},
+ {t:"Recall",cat:"QUALITY",d:"Pulling product back from customers or the field. The most expensive and public quality failure.",w:"Do not lead with recall fear on a call; do let them bring it up. If they have lived one, listen."},
+ {t:"Incoming inspection",cat:"QUALITY",d:"Checking purchased material against spec before it enters production.",w:"A high-volume checklist workflow with supplier data attached. Strong fit story, especially in device plants."},
+ {t:"Supplier quality",cat:"QUALITY",d:"Managing the quality performance of vendors: scorecards, audits, corrective actions on their defects.",w:"Supplier issues found late become your deviation. Ask how supplier defects get logged today."},
+ {t:"Cost of poor quality",cat:"QUALITY",d:"Everything defects cost: scrap, rework, inspection, complaints, recalls, expedites. Usually far larger than anyone admits.",w:"The bridge from floor pain to CFO language. Your case-study stats are cost-of-poor-quality stats."},
+ {t:"Redline",cat:"QUALITY",d:"A marked-up correction to a released document, made in the moment and formalized later. Named for the red pen.",w:"Ask how long redlines take to reach every copy on the floor. On paper: weeks, and stale copies linger."},
+ {t:"Electronic signature",cat:"QUALITY",d:"A regulated digital signature that legally stands in for wet ink, with identity and timestamp attached.",w:"Regulated buyers will ask if signatures are compliant with Part 11. The answer is yes; details belong to the AE."},
+ {t:"Review by exception",cat:"QUALITY",d:"Reviewing only the records with flagged problems instead of every page, possible only when data is captured digitally and validated as it happens.",w:"This phrase is the punchline of the batch-record pitch: hours of review shrink to minutes."},
+ {t:"Master batch record",cat:"PHARMA",d:"The approved template for making a product: the recipe and instructions. Each production run executes a copy that becomes that batch\u2019s record.",w:"Master versus executed matters: the master is the recipe, the executed record is the evidence."},
+ {t:"Golden batch",cat:"PHARMA",d:"The ideal run of a process, used as the benchmark to compare every other batch against.",w:"Finding the golden batch requires data. Plants running paper cannot even see which batch was golden."},
+ {t:"Device master record",cat:"MED DEVICE",d:"The complete recipe for building a device: specs, drawings, procedures, acceptance criteria. The DMR is what you build from; the DHR proves you followed it.",w:"DMR, DHR, DHF confusion is common even inside plants. Knowing the triangle cold earns instant credibility."},
+ {t:"Unique device identification",cat:"MED DEVICE",d:"The regulated labeling system giving every device a scannable identity for tracking through distribution and use.",w:"UDI means barcodes, scanners, and label verification on the line. All app territory."},
+ {t:"Material review board",cat:"AERO & DEF",d:"The standing group that decides the fate of nonconforming material: use as is, rework, repair, or scrap.",w:"Ask how long parts wait for MRB decisions. Idle expensive hardware and paper folders are the norm."},
+ {t:"Certificate of conformance",cat:"AERO & DEF",d:"A signed document certifying delivered product meets all requirements. Customers in regulated industries demand one per shipment.",w:"Generating certs from paper records is slow clerical work. From digital records it is a button."},
+ {t:"Kanban",cat:"LEAN",d:"A pull signal, often a card or bin, that triggers replenishment only when material is actually consumed.",w:"Physical kanban breaks silently when cards get lost. Digital pull signals do not."},
+ {t:"Value stream mapping",cat:"LEAN",d:"Drawing the entire flow of material and information for a product to expose waste and delay.",w:"Plants that have mapped their value stream already know where the pain is. Ask what the map showed."},
+ {t:"Six Sigma",cat:"LEAN",d:"A data-driven improvement methodology focused on reducing variation, with trained practitioner belts.",w:"A black belt on the call wants data access, not slogans. Speak in measurements."},
+ {t:"Operational technology",cat:"SYSTEMS",d:"The hardware and software that runs physical operations, machines, PLCs, sensors, as distinct from office IT.",w:"OT versus IT is a turf line. Tulip lives at the seam, which is why both sides show up to demos."},
+ {t:"Digital twin",cat:"SYSTEMS",d:"A live digital model of a physical process or asset, fed by real data, used to monitor and simulate.",w:"An executive buzzword with real substance underneath. Ground it: twins start with capturing floor data."}
 ];
 function TGloss(){
   const [q,setQ]=useState("");
@@ -3184,10 +3206,10 @@ function TGloss(){
   const acros=(D.ACRO||[]).map(a=>({t:a[0],d:a[1],cat:"ACRONYMS",acro:true}));
   const all=acros.concat(GLOSS).sort((a,b)=>a.t.localeCompare(b.t));
   const ql=q.trim().toLowerCase();
-  const cats=["","ACRONYMS","SHOP FLOOR","SYSTEMS","QUALITY","PHARMA","MED DEVICE","AERO & DEF","LEAN","SALES FLOOR"];
+  const cats=["","ACRONYMS","SHOP FLOOR","SYSTEMS","QUALITY","PHARMA","MED DEVICE","AERO & DEF","LEAN"];
   const rows=all.filter(e=>(!cat||e.cat===cat)&&(!ql||e.t.toLowerCase().includes(ql)||e.d.toLowerCase().includes(ql)));
-  return h("div",{className:"page"},
-    h("div",{style:{marginBottom:4}},
+  return h("div",{className:"stage anim-up",style:{maxWidth:900,margin:"0 auto"}},
+    h("div",{className:"pagehead"},
       h("h1",null,"Glossary"),
       h("span",{className:"mono dim",style:{fontSize:11}},"what it means and why it matters on a call \u00b7 no dumb questions here \u00b7 "+all.length+" entries")),
     h("div",{className:"row",style:{margin:"10px 0 8px",gap:4,flexWrap:"wrap"}},
@@ -3292,7 +3314,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.41 \u00b7 JUL 19 2026 \u00b7 GLOSSARY")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.42 \u00b7 JUL 19 2026 \u00b7 GLOSSARY II")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
