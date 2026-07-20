@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>VANTAGE — Cold Call Command</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -113,6 +113,24 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
   .g2,.g3,.g4{grid-template-columns:1fr}
   .andon{overflow-x:auto}
   .stage{padding:12px 10px 60px}
+}
+@media(max-width:820px){
+  /* app shell: real viewport, one scroller, rail pinned in the thumb zone */
+  #app{height:100dvh}
+  .main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .rail{order:2;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+  .andon{position:sticky;top:0;z-index:40}
+  /* fixed-height screens unwind into the one scroller */
+  .vh-page{height:auto!important;min-height:0}
+  /* touch targets: Apple HIG 44pt floor, Material 48dp, primary 56 */
+  .btn{min-height:44px}
+  .btn.big{min-height:56px}
+  .disp-btn{min-height:52px}
+  .rail-btn{min-height:52px;min-width:58px}
+  .rail-btn .rl{font-size:8.5px}
+  /* DIAL is the headline act on a phone */
+  .rail-btn[data-m="dial"]{background:var(--sigbg);color:var(--sig)}
+  .rail-btn[data-m="dial"] .ri{font-size:19px}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
@@ -2884,7 +2902,7 @@ function TSpar(){
         h("div",null,"· Top performers land 5.7 objection responses per call. Bottom performers land 1.8. The gap is reps."),
         h("div",null,"· The AI plays the persona's real pains from your playbook — it makes you dig for them like a live prospect would."),
         h("div",null,"· End any round for a graded debrief: opener, discovery, objections, close — with your weakest lines rewritten."))));
-  if(phase==="live"||phase==="grading")return h("div",{className:"stage anim-up",style:{maxWidth:780,margin:"0 auto",display:"flex",flexDirection:"column",height:"calc(100vh - 58px)",paddingBottom:16}},
+  if(phase==="live"||phase==="grading")return h("div",{className:"stage anim-up",className:"vh-page",style:{maxWidth:780,margin:"0 auto",display:"flex",flexDirection:"column",height:"calc(100vh - 58px)",paddingBottom:16}},
     h("div",{className:"row",style:{marginBottom:12,flexWrap:"wrap"}},
       h("span",{className:"stamp",style:{color:"var(--sig)"}},"LIVE SPAR"),
       h("b",{className:"mono",style:{fontSize:12}},P.title),
@@ -3290,7 +3308,7 @@ function App(){
         h("span",{className:"rl"},"SEARCH")),
       (()=>{const out=[];let g=null;MODULES.forEach(m=>{
         if(m.grp!==g){g=m.grp;out.push(h("div",{key:"g"+g,className:"rail-grp"},g))}
-        out.push(h("button",{key:m.id,className:"rail-btn"+(mod===m.id?" on":""),onClick:()=>go(m.id)},
+        out.push(h("button",{key:m.id,className:"rail-btn"+(mod===m.id?" on":""),"data-m":m.id,onClick:()=>go(m.id)},
           h("span",{className:"ri"},m.icon),
           h("span",{className:"rl"},m.label)))});return out})(),
       h("div",{className:"rail-foot"},
@@ -3335,7 +3353,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.44 \u00b7 JUL 19 2026 \u00b7 POCKET MODE")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.45 \u00b7 JUL 19 2026 \u00b7 TRUE POCKET")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
