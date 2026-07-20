@@ -3111,13 +3111,97 @@ const MODULES=[
   {id:"targets",icon:"◎",label:"TARGETS",grp:"PREP"},
   {id:"playbook",icon:"▤",label:"PLAYBOOK",grp:"PREP"},
   {id:"armory",icon:"⚑",label:"ARMORY",grp:"PREP"},
-  {id:"spar",icon:"⚔",label:"SPAR",grp:"SHARPEN"},
+  {id:"gloss",icon:"◈",label:"GLOSSARY",grp:"PREP"},   {id:"spar",icon:"⚔",label:"SPAR",grp:"SHARPEN"},
   {id:"objections",icon:"⛨",label:"OBJECT",grp:"SHARPEN"},
   {id:"messages",icon:"✉",label:"MESSAGE",grp:"SHARPEN"},
   {id:"cadence",icon:"⛓",label:"CADENCE",grp:"SHARPEN"},
   {id:"stats",icon:"▙",label:"STATS",grp:"SYSTEM"},
   {id:"forge",icon:"⚒",label:"FORGE",grp:"SYSTEM"},
 ];
+const GLOSS=[
+ {t:"Traveler",cat:"SHOP FLOOR",d:"The paper packet that physically travels with a part or batch through production, collecting steps, sign-offs, and measurements as it goes.",w:"If they say traveler, they are paper-based. That is a Tulip conversation starting itself."},
+ {t:"Work instruction",cat:"SHOP FLOOR",d:"The step-by-step directions an operator follows to do a job. Can be paper, PDF, or interactive software.",w:"Ask how theirs get updated. Paper answers usually include the word reprint and a sigh."},
+ {t:"Router",cat:"SHOP FLOOR",d:"The defined sequence of operations a part moves through, machine by machine, station by station.",w:"Routing changes on paper mean every copy on the floor is wrong until someone walks it around."},
+ {t:"Changeover",cat:"SHOP FLOOR",d:"Everything that happens when a line switches from making one product to another: cleaning, tooling swaps, checks, paperwork.",w:"Changeover time is money everyone on the floor can feel. Great discovery territory."},
+ {t:"Cycle time",cat:"SHOP FLOOR",d:"How long one unit takes at one operation, start to finish.",w:"If they cannot see cycle times without a stopwatch and a spreadsheet, that is a visibility pain."},
+ {t:"Takt time",cat:"SHOP FLOOR",d:"The pace production must hit to meet customer demand. Demand math turned into a drumbeat.",w:"A plant chasing takt with paper boards is doing math by hand under pressure."},
+ {t:"Throughput",cat:"SHOP FLOOR",d:"How many good units actually come out the end per shift, day, or week.",w:"The number plant managers wake up thinking about."},
+ {t:"Bottleneck",cat:"SHOP FLOOR",d:"The one operation that limits the whole line. Everything upstream piles up behind it; everything downstream starves.",w:"Ask where theirs is. Everyone knows. Then ask how they proved it."},
+ {t:"Shift handoff",cat:"SHOP FLOOR",d:"The information transfer when one crew leaves and the next arrives. Often verbal, whiteboard, or a notebook.",w:"Tribal knowledge dies at shift change. That is a pain almost every persona owns."},
+ {t:"Scrap and rework",cat:"SHOP FLOOR",d:"Parts thrown away versus parts fixed and run again. Both are paid-for time and material producing nothing.",w:"Scrap rate is a cost the CFO sees. Rework is a cost the floor hides."},
+ {t:"Downtime",cat:"SHOP FLOOR",d:"Any time a machine or line is not producing when it should be: breakdowns, changeovers, waiting on materials or people.",w:"Ask if they know their top three downtime reasons with data or with opinions."},
+ {t:"Tribal knowledge",cat:"SHOP FLOOR",d:"The stuff only the veterans know: tricks, settings, workarounds that live in heads instead of systems.",w:"Retirement and turnover turn tribal knowledge into a business risk. Strong opener territory."},
+ {t:"Paper-on-glass",cat:"SYSTEMS",d:"Digitizing a paper form into a static screen without rethinking the process. A PDF on a tablet is still a PDF.",w:"Competitors sell paper-on-glass. Tulip's counter is apps that react, validate, and connect."},
+ {t:"Digital thread",cat:"SYSTEMS",d:"An unbroken data trail connecting a product from design through production to the field.",w:"Executives love this phrase. Ground it: it starts with capturing what happens at each station."},
+ {t:"Legacy system",cat:"SYSTEMS",d:"Old software still running because replacing it is scary: green screens, custom code nobody maintains, spreadsheets with tenure.",w:"Never mock the legacy system. Someone on the call probably built it."},
+ {t:"Historian",cat:"SYSTEMS",d:"A database that continuously records machine and sensor values over time, mostly from automated equipment.",w:"Historians capture machine data. The gap is usually the human side: what operators did and saw."},
+ {t:"Single source of truth",cat:"SYSTEMS",d:"One agreed place where the correct version of information lives, instead of five spreadsheets that disagree.",w:"Ask how many versions of the truth exist between planning and the floor."},
+ {t:"Integration",cat:"SYSTEMS",d:"Making two systems share data automatically instead of humans retyping between them.",w:"Retyping between systems is where errors breed. Listen for swivel-chair work."},
+ {t:"No-code / low-code",cat:"SYSTEMS",d:"Building software with visual tools instead of programming, so engineers close to the process can build their own solutions.",w:"This is Tulip's core promise: the people who know the problem build the fix."},
+ {t:"Shadow IT",cat:"SYSTEMS",d:"Tools the business builds or buys without IT: Access databases, macro spreadsheets, one guy's Python script.",w:"Shadow IT means the official systems are not meeting a need. Find that need."},
+ {t:"Deviation",cat:"QUALITY",d:"Any departure from the approved process or spec. In regulated plants, each one triggers documentation and investigation.",w:"Ask how long a deviation takes to close. Weeks is common. Weeks of engineer time."},
+ {t:"Nonconformance",cat:"QUALITY",d:"A part, batch, or process that fails to meet requirements, and the paperwork trail that follows it.",w:"Count the signatures on one nonconformance and you have a cost-of-paper story."},
+ {t:"Quality escape",cat:"QUALITY",d:"A defect that gets past inspection and reaches the customer.",w:"The two most expensive words in manufacturing. If they have had one recently, they will talk."},
+ {t:"Containment",cat:"QUALITY",d:"The emergency response after a defect is found: quarantine suspect parts, stop shipments, sort inventory.",w:"Containment is expensive chaos. Traceability determines whether it takes hours or weeks."},
+ {t:"Root cause",cat:"QUALITY",d:"The true underlying reason a problem happened, versus the symptom. Found by structured investigation, not blame.",w:"Paper records make root cause hunts archaeological digs. Digital records make them queries."},
+ {t:"Audit trail",cat:"QUALITY",d:"A tamper-evident record of who did what, when, and what changed. Mandatory in regulated production.",w:"Paper audit trails are why audit prep takes weeks. This is a direct Tulip value line."},
+ {t:"Data integrity",cat:"QUALITY",d:"Assurance that records are complete, accurate, and unaltered. Regulators shorthand the criteria as ALCOA.",w:"A data integrity finding on an audit is a career-level bad day for a quality director."},
+ {t:"Right-first-time",cat:"QUALITY",d:"The percentage of work completed correctly with no rework, deviations, or corrections.",w:"A metric quality leaders track and love to improve. Ask theirs."},
+ {t:"Release",cat:"QUALITY",d:"The formal decision that a finished batch or lot can ship, made after reviewing all its records.",w:"Review-by-exception on digital records collapses release time. Big pharma proof point."},
+ {t:"Batch record",cat:"PHARMA",d:"The complete documented history of one production batch: every step, ingredient, reading, and signature. Regulators can demand it years later.",w:"Paper batch records are the beating heart of pharma pain. Hours of review per batch."},
+ {t:"Batch record review",cat:"PHARMA",d:"Quality checking every page of a batch record before release. On paper, error hunts through hundreds of pages.",w:"Ask how many people touch a batch record before release. The number sells for you."},
+ {t:"Cleanroom",cat:"PHARMA",d:"A controlled production space where air, gowning, and behavior are strictly managed to prevent contamination.",w:"Paper in cleanrooms is a contamination and logistics headache. Tablets behind glass are not."},
+ {t:"Environmental monitoring",cat:"PHARMA",d:"Routinely sampling air, surfaces, and people in clean spaces to prove contamination control.",w:"High-volume, deadline-driven data collection. Painful on paper, natural in an app."},
+ {t:"Lot genealogy",cat:"PHARMA",d:"The family tree of a batch: which material lots went into it and which orders it fed.",w:"When a supplier recalls a lot, genealogy answers what else is affected. Paper makes that days."},
+ {t:"Tech transfer",cat:"PHARMA",d:"Moving a process from one site or scale to another: lab to plant, site to site, with all its knowledge intact.",w:"Ask how process knowledge travels between sites. Usually: binders and one overworked expert."},
+ {t:"Validation",cat:"PHARMA",d:"Documented proof that equipment, software, and processes reliably do what they claim. A regulatory requirement before production use.",w:"Buyers fear software that is hard to validate. Tulip has validation-ready answers; know they exist, let AEs go deep."},
+ {t:"Design history file",cat:"MED DEVICE",d:"The complete record proving a device was designed under proper controls, from requirements through testing.",w:"Device buyers live in acronyms: DHF for design history, DHR for each unit built, DMR for the recipe. Knowing the difference earns credibility."},
+ {t:"Design controls",cat:"MED DEVICE",d:"The regulated discipline governing how devices are designed: requirements, reviews, verification, validation, all documented.",w:"Signals you are talking to engineering leadership rather than production. Adjust your pains accordingly."},
+ {t:"Complaint handling",cat:"MED DEVICE",d:"The regulated process for logging and investigating every product complaint from the field, with reporting deadlines to regulators.",w:"Complaint volume plus paper equals backlog. Quality directors feel this weekly."},
+ {t:"Class II device",cat:"MED DEVICE",d:"FDA's middle risk tier: think surgical instruments, infusion pumps, diagnostics. Most devices live here, cleared through the 510(k) pathway.",w:"Class tells you regulatory intensity. Class II and III shops have the deepest documentation pain."},
+ {t:"Sterilization lot",cat:"MED DEVICE",d:"A batch of product sterilized together, with parameters recorded as proof each unit is safe to use.",w:"Sterilization records are release-blocking. Delays here are shipment delays."},
+ {t:"Serialized part",cat:"AERO & DEF",d:"A part with a unique tracked identity for its entire life, sometimes decades of service history.",w:"Serialization means traceability obsession. Aerospace buys traceability before it buys speed."},
+ {t:"Buy-off",cat:"AERO & DEF",d:"A required inspection sign-off before work can continue past a hold point. Some steps need multiple stamps.",w:"Ask how many buy-offs a unit needs and how inspectors get summoned. Usually: walking and waiting."},
+ {t:"First article",cat:"AERO & DEF",d:"Exhaustive inspection of the first part off a new or changed process, documented feature by feature to prove the process works.",w:"First article prep on paper is days of documentation. A strong A&D pain probe."},
+ {t:"Foreign object debris",cat:"AERO & DEF",d:"Anything left where it should not be: a dropped fastener, a forgotten tool. In aerospace, potentially catastrophic, so control is procedural and strict.",w:"Tool accountability and FOD walks are daily rituals. Apps that track them resonate instantly."},
+ {t:"Export control",cat:"AERO & DEF",d:"Laws restricting who may see defense-related technical data, including ITAR. Violations carry personal criminal liability.",w:"Expect where-does-the-data-live questions early. Flag it for the AE; never improvise compliance answers."},
+ {t:"Kaizen",cat:"LEAN",d:"Continuous improvement through many small changes, usually driven by the people doing the work.",w:"A plant with kaizen culture already believes operators should improve their own process. Tulip is that belief with software."},
+ {t:"Gemba",cat:"LEAN",d:"The actual place work happens. A gemba walk means leaders going to the floor to see reality instead of reports.",w:"Ask what leaders see on a gemba walk versus what the reports said. The gap is your opening."},
+ {t:"Andon",cat:"LEAN",d:"A signal, light, or board that makes problems instantly visible so help arrives fast.",w:"Digital andon is a classic first Tulip app: small build, visible win."},
+ {t:"Poka-yoke",cat:"LEAN",d:"Error-proofing a process so mistakes are physically or logically impossible: guided steps, interlocks, forced checks.",w:"Say mistake-proofing on calls; the Japanese term can misfire. Guided work instructions are poka-yoke in software."},
+ {t:"5S",cat:"LEAN",d:"A workplace organization method: sort, set in order, shine, standardize, sustain.",w:"5S audits on clipboards are common and hated. Another easy first-app story."},
+ {t:"Standard work",cat:"LEAN",d:"The current best-known way to do a task, documented so everyone does it the same until someone improves it.",w:"Ask how they know standard work is actually followed at two in the morning."},
+ {t:"Disposition",cat:"SALES FLOOR",d:"How a call ended, logged: no answer, conversation, callback, meeting booked. Your dispositions feed your stats and follow-ups.",w:"Log every call honestly. Your Funnel Math is only as real as your dispositions."},
+ {t:"Gatekeeper",cat:"SALES FLOOR",d:"The person between you and the buyer: reception, an assistant, a shared line.",w:"Treat gatekeepers as allies with information, not obstacles. The guide has a whole branch for this."},
+ {t:"Discovery",cat:"SALES FLOOR",d:"Questions that surface the prospect's real situation, pains, and buying process before any pitch.",w:"VANTAGE tracks six discovery categories live. Green chips before you pitch."},
+ {t:"Talk track",cat:"SALES FLOOR",d:"Prepared language for a situation: an opener, an objection response, a transition. A tool, not a script to read.",w:"Internalize talk tracks until they sound like you. SPAR exists for exactly this."},
+ {t:"Cold call connect",cat:"SALES FLOOR",d:"A dial where a human answers. Connect rate is connects divided by dials, and it decides how precious each conversation is.",w:"At typical connect rates you get a handful of real conversations per hundred dials. Waste none."},
+ {t:"Champion",cat:"SALES FLOOR",d:"Someone inside the account who wants you to win and sells for you when you are not in the room.",w:"Cold calls find champions. The persona picker exists because champions come in titles."}
+];
+function TGloss(){
+  const [q,setQ]=useState("");
+  const [cat,setCat]=useState("");
+  const acros=(D.ACRO||[]).map(a=>({t:a[0],d:a[1],cat:"ACRONYMS",acro:true}));
+  const all=acros.concat(GLOSS).sort((a,b)=>a.t.localeCompare(b.t));
+  const ql=q.trim().toLowerCase();
+  const cats=["","ACRONYMS","SHOP FLOOR","SYSTEMS","QUALITY","PHARMA","MED DEVICE","AERO & DEF","LEAN","SALES FLOOR"];
+  const rows=all.filter(e=>(!cat||e.cat===cat)&&(!ql||e.t.toLowerCase().includes(ql)||e.d.toLowerCase().includes(ql)));
+  return h("div",{className:"page"},
+    h("div",{style:{marginBottom:4}},
+      h("h1",null,"Glossary"),
+      h("span",{className:"mono dim",style:{fontSize:11}},"what it means and why it matters on a call \u00b7 no dumb questions here \u00b7 "+all.length+" entries")),
+    h("div",{className:"row",style:{margin:"10px 0 8px",gap:4,flexWrap:"wrap"}},
+      cats.map(c=>h("button",{key:c||"all",className:"btn ghost",style:{fontSize:10,padding:"5px 9px",borderColor:cat===c?"var(--sig)":undefined,color:cat===c?"var(--sig)":undefined},onClick:()=>setCat(c)},c||"ALL"))),
+    h("div",{className:"row",style:{marginBottom:14}},
+      h("input",{style:{flex:1,fontSize:13,padding:"10px 12px"},placeholder:"Look something up\u2026 (term or words from its meaning)",value:q,onChange:e=>setQ(e.target.value)})),
+    rows.length===0&&h("div",{className:"mono dim",style:{padding:20}},"Nothing matches. Try fewer letters \u2014 or tell Chris a term is missing."),
+    rows.map((e,i)=>h("div",{key:e.t+i,style:{background:"var(--panel)",border:"1px solid var(--line)",borderRadius:10,padding:"12px 14px",marginBottom:8}},
+      h("div",{className:"row",style:{gap:8,alignItems:"baseline",flexWrap:"wrap"}},
+        h("b",{style:{fontSize:14}},e.t),
+        h("span",{className:"mono",style:{fontSize:9,color:"var(--sig)",background:"var(--sigbg)",padding:"2px 7px",borderRadius:5}},e.cat)),
+      h("div",{style:{fontSize:12.5,lineHeight:1.55,marginTop:5}},e.acro?h(F,null,h("span",{className:"mono dim",style:{fontSize:10}},"STANDS FOR \u00b7 "),e.d):e.d),
+      e.w&&h("div",{className:"mono",style:{fontSize:10.5,lineHeight:1.55,marginTop:6,color:"var(--dim2)"}},h("b",{style:{color:"var(--amber)"}},"ON THE CALL \u00b7 "),e.w))));
+}
 function Andon(){
   const [,force]=useState(0);
   const [now,setNow]=useState(new Date());
@@ -3152,7 +3236,7 @@ function App(){
   const [sub,setSub]=useState(null);
   const [bump,setBump]=useState(0);
   const go=(m,s)=>{if(m===mod&&window.__JUMP)setBump(b=>b+1);setMod(m);setSub(s||null);};
-  const Page={board:TBoard,dial:TDial,recon:TRecon,spar:TSpar,targets:TTargets,playbook:TPlaybook,armory:TArmory,objections:TObjections,messages:TMessages,cadence:TCadence,stats:TStats,forge:TForge}[mod];
+  const Page={board:TBoard,dial:TDial,recon:TRecon,spar:TSpar,targets:TTargets,playbook:TPlaybook,armory:TArmory,gloss:TGloss,objections:TObjections,messages:TMessages,cadence:TCadence,stats:TStats,forge:TForge}[mod];
   return h(F,null,
     h(ToastHost),
     h(CommandPalette,{go}),
@@ -3208,7 +3292,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.40 \u00b7 JUL 19 2026 \u00b7 CLEAN BOARD II")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.41 \u00b7 JUL 19 2026 \u00b7 GLOSSARY")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
