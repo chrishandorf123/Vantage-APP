@@ -126,11 +126,40 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
   .btn{min-height:44px}
   .btn.big{min-height:56px}
   .disp-btn{min-height:52px}
-  .rail-btn{min-height:52px;min-width:58px}
+  .rail-btn{min-height:52px}
   .rail-btn .rl{font-size:8.5px}
   /* DIAL is the headline act on a phone */
   .rail-btn[data-m="dial"]{background:var(--sigbg);color:var(--sig)}
   .rail-btn[data-m="dial"] .ri{font-size:19px}
+}
+.more-sheet{position:fixed;inset:0;background:rgba(12,17,27,.55);z-index:200;display:flex;align-items:flex-end}
+.more-grid{background:var(--panel);border-top:2px solid var(--line);width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 14px calc(18px + env(safe-area-inset-bottom));max-height:70dvh;overflow-y:auto}
+.more-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;min-height:64px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.04em;cursor:pointer}
+.more-btn .mi{font-size:20px}
+.more-btn.on{border-color:var(--sig);color:var(--sig);background:var(--sigbg)}
+.rail-more{display:none}
+@media(max-width:820px){
+  .rail{overflow-x:visible;justify-content:space-around;align-items:stretch}
+  .rail-btn{display:none;margin:2px 2px}
+  .rail-btn[data-m="board"],.rail-btn[data-m="dial"],.rail-btn[data-m="targets"],.rail-btn[data-m="stats"],.rail-more{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .rail-grp,.rail-foot,.rail-logo{display:none}
+  .andon{height:auto;min-height:56px;flex-wrap:wrap}
+}
+@media(max-width:820px){
+  /* bottom bar: six fixed slots, search included per thumb-zone research, zero scroll possible */
+  .rail{flex-wrap:nowrap;overflow:hidden;justify-content:space-between;padding-left:2px;padding-right:2px}
+  .rail-btn[data-m="board"],.rail-btn[data-m="dial"],.rail-btn[data-m="targets"],.rail-btn[data-m="stats"],.rail-more,.rail-search{display:flex;flex:1 1 0;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0!important;margin:2px 1px;padding:7px 0 6px}
+  .rail-btn .rl{font-size:8px;letter-spacing:.02em}
+  /* top bar: wraps compactly, never side-scrolls */
+  .andon{height:auto;min-height:0;flex-wrap:wrap;overflow-x:visible;padding:3px 4px}
+  .andon-cell{min-width:0!important;flex:1 1 auto;padding:3px 7px}
+  .andon-cell .av{font-size:15px}
+  /* every row breathes down, not sideways */
+  .row{flex-wrap:wrap}
+  /* overlays and tables fit the hand */
+  .modal{width:94vw;max-height:88dvh}
+  table{display:block;overflow-x:auto;max-width:100%}
+  h1{font-size:20px}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
@@ -2505,7 +2534,7 @@ function Heatmap(){
     if(grid[k].conn>maxC)maxC=grid[k].conn;
   });
   return h("div",{className:"blk",style:{padding:"16px",marginBottom:20,overflowX:"auto"}},
-    h("div",{style:{display:"grid",gridTemplateColumns:"46px repeat(10,1fr)",gap:3,minWidth:520}},
+    h("div",{style:{display:"grid",gridTemplateColumns:"46px repeat(10,1fr)",gap:3,minWidth:"min(520px,92vw)"}},
       h("div"),
       hours.map(hr=>h("div",{key:hr,className:"mono dim",style:{fontSize:8,textAlign:"center"}},(hr%12||12)+(hr<12?"a":"p"))),
       rows.map((r,ri)=>h(F,{key:r},
@@ -3296,11 +3325,15 @@ function App(){
   const [mod,setMod]=useState("board");
   const [sub,setSub]=useState(null);
   const [bump,setBump]=useState(0);
+  const [more,setMore]=useState(false);
   const go=(m,s)=>{if(m===mod&&window.__JUMP)setBump(b=>b+1);setMod(m);setSub(s||null);};
   const Page={board:TBoard,dial:TDial,recon:TRecon,spar:TSpar,targets:TTargets,playbook:TPlaybook,armory:TArmory,gloss:TGloss,objections:TObjections,messages:TMessages,cadence:TCadence,stats:TStats,forge:TForge}[mod];
   return h(F,null,
     h(ToastHost),
     h(CommandPalette,{go}),
+    more&&h("div",{className:"more-sheet",onClick:()=>setMore(false)},
+      h("div",{className:"more-grid",onClick:e=>e.stopPropagation()},
+        MODULES.map(m=>h("button",{key:m.id,className:"more-btn"+(mod===m.id?" on":""),onClick:()=>{setMore(false);go(m.id)}},h("span",{className:"mi"},m.icon),h("span",null,m.label))))),
     h("div",{className:"rail"},
       h("div",{className:"rail-logo",title:"Tulip VANTAGE",style:{fontSize:26},dangerouslySetInnerHTML:{__html:TULIP_MARK}}),
       h("button",{className:"rail-btn rail-search",title:"Search everything · Ctrl+K",onClick:()=>window.__palette&&window.__palette()},
@@ -3311,6 +3344,7 @@ function App(){
         out.push(h("button",{key:m.id,className:"rail-btn"+(mod===m.id?" on":""),"data-m":m.id,onClick:()=>go(m.id)},
           h("span",{className:"ri"},m.icon),
           h("span",{className:"rl"},m.label)))});return out})(),
+      h("button",{className:"rail-btn rail-more",onClick:()=>setMore(true)},h("span",{className:"ri"},"⋯"),h("span",{className:"rl"},"MORE")),
       h("div",{className:"rail-foot"},
         h("div",{className:"mono",style:{fontSize:7.5,color:"var(--dim)",lineHeight:1.6,letterSpacing:".05em"}},"VANTAGE 5",h("br"),__fbOK&&__uid?"SYNCED":"LOCAL"))),
     h("div",{className:"main"},
@@ -3353,7 +3387,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.45 \u00b7 JUL 19 2026 \u00b7 TRUE POCKET")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.47 \u00b7 JUL 19 2026 \u00b7 ONE THUMB")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
