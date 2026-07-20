@@ -1580,7 +1580,8 @@ function findObjection(find){
    permission survives the engine's internal restarts; released on stop */
 function holdMic(stream){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=stream}
 /* ---- Deepgram streaming ear: proxy mints a 30s token, browser streams straight to wss ---- */
-const DG={ws:null,mr:null,keep:false,stream:null,h:null};
+const DG={ws:null,mr:null,keep:false,stream:null,h:null,tries:0,ka:null};
+function dgMime(){const c=["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus","audio/mp4"];for(const m of c){try{if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}catch(e){}}return ""}
 async function dgToken(){const b=await getProxyUrl();if(!b)throw new Error("NO_PROXY");const r=await fetch(b+"/api/stt-token");const j=await r.json();if(!j||!j.ok||!j.token)throw new Error((j&&j.error)||"NO_DEEPGRAM");return j.token}
 function dgKeyterms(){try{const t=(D.ACRO||[]).map(a=>a[0]).concat((D.COMPETITORS||[]).map(c=>c.n||c.name||"")).concat(["Tulip","traveler","travelers"]).filter(Boolean).slice(0,45);return t.map(x=>"&keyterm="+encodeURIComponent(x)).join("")}catch(e){return ""}}
 async function dgStart(stream,h){
@@ -1588,14 +1589,20 @@ async function dgStart(stream,h){
   const url="wss://api.deepgram.com/v1/listen?model=nova-3&language=en-US&smart_format=true&interim_results=true&endpointing=300&utterance_end_ms=1200"+dgKeyterms()+"&access_token="+encodeURIComponent(token);
   const ws=new WebSocket(url);
   DG.ws=ws;DG.stream=stream;DG.h=h;
-  ws.onopen=()=>{h.onStatus&&h.onStatus("");try{if(stream&&window.MediaRecorder){const mr=new MediaRecorder(stream,{mimeType:"audio/webm;codecs=opus"});DG.mr=mr;mr.ondataavailable=e=>{if(e.data&&e.data.size&&ws.readyState===1)ws.send(e.data)};mr.start(250)}}catch(e){}};
+  ws.onopen=()=>{DG.tries=0;h.onStatus&&h.onStatus("");
+    try{if(DG.ka)clearInterval(DG.ka);DG.ka=setInterval(()=>{try{if(ws.readyState===1)ws.send(JSON.stringify({type:"KeepAlive"}))}catch(e){}},7000);}catch(e){}
+    try{if(stream&&window.MediaRecorder){const mt=dgMime();const mr=mt?new MediaRecorder(stream,{mimeType:mt}):new MediaRecorder(stream);DG.mr=mr;mr.ondataavailable=e=>{if(e.data&&e.data.size&&ws.readyState===1)ws.send(e.data)};mr.start(250)}}catch(e){}};
   ws.onmessage=ev=>{try{const m=JSON.parse(ev.data);if(m.type!=="Results")return;const alt=m.channel&&m.channel.alternatives&&m.channel.alternatives[0];if(!alt)return;const t=(alt.transcript||"").trim();if(!t)return;if(m.is_final){h.onFinal&&h.onFinal(t,alt.confidence==null?1:alt.confidence)}else{h.onInterim&&h.onInterim(t)}}catch(e){}};
-  ws.onclose=()=>{try{DG.mr&&DG.mr.state!=="inactive"&&DG.mr.stop()}catch(e){}DG.mr=null;DG.ws=null;
-    if(DG.keep){h.onStatus&&h.onStatus("SPEECH LINK HICCUP \u2014 RECONNECTING\u2026");
-      setTimeout(()=>{if(DG.keep&&DG.stream!==undefined)dgStart(DG.stream,DG.h).catch(()=>{h.onFatal&&h.onFatal("DEEPGRAM UNREACHABLE \u2014 tap LISTEN again for the browser ear")})},700)}};
+  ws.onclose=(ev)=>{try{if(DG.ka)clearInterval(DG.ka)}catch(e){}try{DG.mr&&DG.mr.state!=="inactive"&&DG.mr.stop()}catch(e){}DG.mr=null;DG.ws=null;
+    if(DG.keep){
+      if(ev&&(ev.code===1008||ev.code===4008||ev.code===4001)){DG.keep=false;h.onFatal&&h.onFatal("DEEPGRAM AUTH REJECTED \u2014 switch EAR to BROWSER in Forge");return}
+      DG.tries=(DG.tries||0)+1;
+      if(DG.tries>4){DG.keep=false;h.onFatal&&h.onFatal("DEEPGRAM KEEPS DROPPING \u2014 using the browser ear (set EAR to BROWSER in Forge to silence this)");return}
+      h.onStatus&&h.onStatus("SPEECH LINK HICCUP \u2014 RECONNECTING\u2026");
+      setTimeout(()=>{if(DG.keep&&DG.stream!==undefined)dgStart(DG.stream,DG.h).catch(()=>{DG.keep=false;h.onFatal&&h.onFatal("DEEPGRAM UNREACHABLE \u2014 using the browser ear")})},900)}};
   ws.onerror=()=>{};
 }
-function dgStop(){DG.keep=false;try{DG.mr&&DG.mr.state!=="inactive"&&DG.mr.stop()}catch(e){}try{DG.ws&&DG.ws.close()}catch(e){}DG.mr=null;DG.ws=null}
+function dgStop(){DG.keep=false;DG.tries=0;try{if(DG.ka)clearInterval(DG.ka)}catch(e){}try{DG.mr&&DG.mr.state!=="inactive"&&DG.mr.stop()}catch(e){}try{DG.ws&&DG.ws.close()}catch(e){}DG.mr=null;DG.ws=null}
 function releaseMic(){try{if(window.__vMicHold)window.__vMicHold.getTracks().forEach(t=>t.stop())}catch(e){}window.__vMicHold=null}
 function srNetTrack(ref){const now=Date.now();ref.current=(ref.current||[]).filter(t=>now-t<15000);ref.current.push(now);return ref.current.length}
 function srFatalMsg(err){
@@ -3458,7 +3465,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.59 \u00b7 JUL 20 2026 \u00b7 DEEPGRAM EAR")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.60 \u00b7 JUL 20 2026 \u00b7 STEADY STREAM")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
