@@ -1882,6 +1882,12 @@ function CallGuide({P,ctx,sec,onDisp,openObj,onPersona,onDiscState,onIntel,seedD
     aiNote&&h("div",{className:"mono",style:{fontSize:8.5,color:"var(--amber)",marginBottom:8,lineHeight:1.7}},aiNote),
     micStatus&&h("div",{className:"mono",style:{fontSize:8.5,color:"var(--alarm)",marginBottom:8,lineHeight:1.7}},micStatus),
     listening&&h("div",{className:"mono dim",style:{fontSize:8,marginBottom:8}},"Uses your browser's speech engine on your mic. Nothing is stored. If the prospect is on speaker, check your state's consent rules."),
+      h("div",{className:"row",style:{gap:6,margin:"4px 0 6px",flexWrap:"wrap",alignItems:"center"}},
+        h("span",{className:"mono dim",style:{fontSize:8,letterSpacing:".08em"}},"LENS:"),
+        [[67,"QUALITY"],[68,"OPS"],[69,"ENG"],[70,"IT"]].map(([gi,lb])=>{
+          const on=P&&D.PERSONAS[gi]&&P.title===D.PERSONAS[gi].title;
+          return h("button",{key:gi,className:"chip lens-chip"+(on?" on":""),style:{fontSize:9,padding:"4px 10px"},title:on?"Tap to return to the call's persona":"Swap the whole guide to "+D.PERSONAS[gi].title,onClick:()=>onPersona&&onPersona(on?null:gi)},lb)
+        })),
       h("div",{className:"mono",style:{fontSize:9.5,lineHeight:1.7,margin:"6px 0 8px"}},
         h("span",{style:{color:"var(--alarm)",fontWeight:800}},"THEY HURT: "),(P.pains||[]).slice(0,3).map(x=>String(x).split(".")[0]).join(" · "),h("br"),
         h("span",{style:{color:"var(--go)",fontWeight:800}},"THEY CARE: "),(P.cares||[]).slice(0,3).join(" · ")),
@@ -3525,7 +3531,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.65 \u00b7 JUL 20 2026 \u00b7 GENERALS")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.66 \u00b7 JUL 20 2026 \u00b7 LENS")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
