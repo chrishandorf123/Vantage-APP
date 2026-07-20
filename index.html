@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>VANTAGE — Cold Call Command</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -191,6 +191,25 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
   /* structural guarantee: no page scrolls sideways, ever; contained scrollers still work */
   .main{overflow-x:hidden}
   .stage a,.blk a{overflow-wrap:anywhere}
+}
+@media(max-width:820px){
+  /* canonical app shell: fixed slim header, fixed bottom tabs on the visual viewport, document scroll between */
+  #app{display:block;height:auto;min-height:100vh;min-height:100dvh}
+  .main{display:block;min-width:0;overflow:visible;overflow-x:hidden;padding-top:44px;padding-bottom:calc(62px + env(safe-area-inset-bottom))}
+  .andon{position:fixed;top:0;left:0;right:0;z-index:110;height:40px;min-height:40px;max-height:40px;flex-wrap:nowrap;overflow:hidden;padding:0 2px;gap:0}
+  .andon>.andon-cell{flex:1 1 0;min-width:0!important;padding:2px 2px;border:none}
+  .andon>.andon-cell:nth-child(n+6),.andon-clock{display:none}
+  .andon .al{font-size:6px}
+  .andon .av{font-size:14px}
+  .rail{position:fixed;bottom:0;left:0;right:0;top:auto;z-index:120;width:100%;height:auto;flex-direction:row;flex-wrap:nowrap;overflow:hidden;border-top:2px solid var(--line);border-bottom:none;border-right:none;background:var(--panel);margin:0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+  .rail-logo,.rail-grp,.rail-foot,.rail-search{display:none!important}
+  .rail-btn{display:none}
+  .rail-btn[data-m="board"],.rail-btn[data-m="dial"],.rail-btn[data-m="targets"],.rail-btn[data-m="stats"],.rail-more{display:flex;flex:1 1 0%;width:0;min-width:0!important;margin:0;padding:8px 0 7px;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;border-radius:0;overflow:hidden;white-space:nowrap}
+  .rail-btn .rl{font-size:7.5px;letter-spacing:0}
+  .rail-btn .ri{font-size:16px;line-height:1}
+  .rail-btn[data-m="dial"]{background:var(--sigbg);color:var(--sig)}
+  .rail-btn[data-m="dial"] .ri{font-size:18px}
+  .more-hub{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:2px 2px 10px;border-bottom:1px solid var(--hair);margin-bottom:2px}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
@@ -3357,6 +3376,7 @@ function App(){
   const [sub,setSub]=useState(null);
   const [bump,setBump]=useState(0);
   const [more,setMore]=useState(false);
+  const [,hubPulse]=useState(0);
   const go=(m,s)=>{if(m===mod&&window.__JUMP)setBump(b=>b+1);setMod(m);setSub(s||null);};
   const Page={board:TBoard,dial:TDial,recon:TRecon,spar:TSpar,targets:TTargets,playbook:TPlaybook,armory:TArmory,gloss:TGloss,objections:TObjections,messages:TMessages,cadence:TCadence,stats:TStats,forge:TForge}[mod];
   return h(F,null,
@@ -3364,6 +3384,10 @@ function App(){
     h(CommandPalette,{go}),
     more&&h("div",{className:"more-sheet",onClick:()=>setMore(false)},
       h("div",{className:"more-grid",onClick:e=>e.stopPropagation()},
+        h("div",{className:"more-hub"},
+          h("span",{className:"eyebrow",style:{fontSize:9}},"HUB"),
+          [["","STOCK"],["general","GEN"],["pharma","PHARMA"],["meddevice","MED DEV"],["aerodefense","A&D"]].map(([id,lb])=>
+            h("button",{key:id||"stock",className:"chip"+((AppState.hub||"")===id?" on":""),style:{fontSize:9,padding:"5px 9px"},onClick:()=>{setGlobalHub(id);hubPulse(x=>x+1)}},lb))),
         MODULES.map(m=>h("button",{key:m.id,className:"more-btn"+(mod===m.id?" on":""),onClick:()=>{setMore(false);go(m.id)}},h("span",{className:"mi"},m.icon),h("span",null,m.label))))),
     h("div",{className:"rail"},
       h("div",{className:"rail-logo",title:"Tulip VANTAGE",style:{fontSize:26},dangerouslySetInnerHTML:{__html:TULIP_MARK}}),
@@ -3418,7 +3442,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.50 \u00b7 JUL 19 2026 \u00b7 EVERY TAB")))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.51 \u00b7 JUL 19 2026 \u00b7 APP SHELL")))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
