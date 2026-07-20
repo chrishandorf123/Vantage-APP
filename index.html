@@ -182,15 +182,15 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
 /* ============ ONE SHEET — the only mobile layer. everything phone lives here, last, and wins ============ */
 .mq-flag{display:none;font-size:9px;color:var(--go);letter-spacing:.08em;margin-top:6px}
 @media(max-width:820px){
-  #app{display:block;height:auto;min-height:100vh;min-height:100dvh}
-  .main{display:block;min-width:0;overflow:visible;overflow-x:hidden;padding-top:44px;padding-bottom:calc(62px + env(safe-area-inset-bottom))}
-  .andon{position:fixed;top:0;left:0;right:0;z-index:110;height:40px;min-height:40px;max-height:40px;display:flex;flex-wrap:nowrap;overflow:hidden;padding:0 2px;gap:0}
+  #app{display:flex;flex-direction:column;height:100vh;height:100dvh;height:100svh;overflow:hidden}
+  .main{order:2;flex:1 1 0;min-height:0;display:block;min-width:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 0 12px}
+  .andon{position:sticky;top:0;z-index:110;height:40px;min-height:40px;max-height:40px;display:flex;flex-wrap:nowrap;overflow:hidden;padding:0 2px;gap:0}
   .andon>.andon-cell:nth-child(-n+5){flex:1 1 0;min-width:0!important;padding:2px 3px;border:none}
   .andon>.andon-cell:nth-child(n+6),.andon-clock{display:none}
   .andon .al{font-size:6px}
   .andon .av{font-size:14px}
   .andon button,.andon .btn{min-height:26px!important;padding:3px 6px!important;font-size:8.5px!important}
-  .rail{position:fixed;bottom:0;left:0;right:0;top:auto;z-index:120;width:100%;height:auto;display:flex;flex-direction:row;flex-wrap:nowrap;overflow:hidden;justify-content:space-between;border-top:2px solid var(--line);border-bottom:none;border-right:none;background:var(--panel);margin:0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+  .rail{order:3;position:static;flex-shrink:0;width:100%;height:auto;display:flex;flex-direction:row;flex-wrap:nowrap;overflow:hidden;justify-content:space-between;border-top:2px solid var(--line);border-bottom:none;border-right:none;background:var(--panel);margin:0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
   .rail-logo,.rail-grp,.rail-foot,.rail-search{display:none!important}
   .rail-btn{display:none}
   .rail-btn.pin,.rail-more{display:flex!important;flex:1 1 0%;width:0;min-width:0!important;max-width:none;flex-shrink:1;flex-direction:column;align-items:center;justify-content:center;gap:1px;margin:0;padding:8px 1px 7px;border:none;border-radius:0;overflow:hidden;white-space:nowrap}
@@ -206,12 +206,13 @@ input:focus,textarea:focus,select:focus{border-color:var(--sig);box-shadow:0 0 0
   .call-top .btn.big{margin-top:8px!important;width:100%!important}
   .vh-page{height:auto!important;min-height:0}
   .split{flex-direction:column;height:auto;overflow:visible}
-  .split-list{width:100%;max-height:none;border-right:none;border-bottom:2px solid var(--line)}
+  .split-list{width:100%;max-height:none;height:auto;overflow:visible;border-right:none;border-bottom:2px solid var(--line)}
   .split.m-open .split-list{display:none}
   .split:not(.m-open)>*:not(.split-list):not(.m-back){display:none}
+  .split.solo .m-back{display:none!important}
   .split.m-open .m-back{display:flex;width:100%;border-radius:0;border-left:none;border-right:none;position:sticky;top:40px;z-index:60;background:var(--panel);justify-content:flex-start;padding:10px 12px}
   .split-list .eyebrow{position:sticky;top:40px;z-index:5;background:var(--panel2);padding:6px 12px;margin:0}
-  .split-body{padding:14px 12px 24px}
+  .split-body{flex:0 0 auto;height:auto;max-height:none;overflow:visible;overflow-y:visible;min-height:0;padding:14px 12px 24px}
   .g3,.g4{grid-template-columns:1fr 1fr}
   .row{flex-wrap:wrap}
   .msg-split{grid-template-columns:1fr!important}
@@ -2210,8 +2211,8 @@ function TPlaybook(){
   };
   const list=lists[tab]||[];
   const cur=list[Math.min(sel,Math.max(0,list.length-1))];
-  return h("div",{className:"split"+(mOpen?" m-open":""),onClickCapture:e=>{if(e.target&&e.target.closest&&e.target.closest(".list-item"))setMOpen(true)}},
-    h("button",{className:"m-back btn sm",onClick:e=>{e.stopPropagation();setMOpen(false)}},"← BACK TO LIST"),
+  return h("div",{className:"split"+((tab==="discovery")?" m-open solo":(mOpen?" m-open":"")),onClickCapture:e=>{if(e.target&&e.target.closest&&e.target.closest(".list-item")){setMOpen(true);try{window.scrollTo(0,0)}catch(_){}}}},
+    h("button",{className:"m-back btn sm",onClick:e=>{e.stopPropagation();setMOpen(false);try{window.scrollTo(0,0)}catch(_){}}},"← BACK TO LIST"),
     h("div",{className:"split-list"},
       h("div",{style:{padding:"12px 12px 10px",borderBottom:"2px solid var(--line)"}},
         h("div",{className:"tabbar",style:{width:"100%",marginBottom:10}},
@@ -2372,8 +2373,8 @@ function TMessages(){
     setAI({busy:false});
   };
   const chGroups=[["email","EMAIL"],["linkedin","LINKEDIN"],["voicemail","VOICEMAIL"],["sms","SMS"]];
-  return h("div",{className:"split"+(mOpen?" m-open":""),onClickCapture:e=>{if(e.target&&e.target.closest&&e.target.closest(".list-item"))setMOpen(true)}},
-    h("button",{className:"m-back btn sm",onClick:e=>{e.stopPropagation();setMOpen(false)}},"← BACK TO LIST"),
+  return h("div",{className:"split"+(mOpen?" m-open":""),onClickCapture:e=>{if(e.target&&e.target.closest&&e.target.closest(".list-item")){setMOpen(true);try{window.scrollTo(0,0)}catch(_){}}}},
+    h("button",{className:"m-back btn sm",onClick:e=>{e.stopPropagation();setMOpen(false);try{window.scrollTo(0,0)}catch(_){}}},"← BACK TO LIST"),
     h("div",{className:"split-list"},
       h("div",{style:{padding:"12px 12px 10px",borderBottom:"2px solid var(--line)"}},
         h("div",{className:"eyebrow",style:{marginBottom:6}},"MESSAGE STUDIO"),
@@ -2754,8 +2755,8 @@ function TRecon(){
     AppState.targets.unshift({id:uid(),name:r.person||"",title:"",personaIdx:pIdx===""?0:+pIdx,company:r.company,phone:"",hub:"",notes:"RECON on file ("+new Date(r.ts).toLocaleDateString()+")",status:"QUEUE",touches:0,createdAt:todayKey()});
     saveState("targets");toast("ADDED TO TARGETS");
   };
-  return h("div",{className:"split"+(mOpen?" m-open":""),onClickCapture:e=>{if(e.target&&e.target.closest&&e.target.closest(".list-item"))setMOpen(true)}},
-    h("button",{className:"m-back btn sm",onClick:e=>{e.stopPropagation();setMOpen(false)}},"← BACK TO LIST"),
+  return h("div",{className:"split"+(mOpen?" m-open":""),onClickCapture:e=>{if(e.target&&e.target.closest&&e.target.closest(".list-item")){setMOpen(true);try{window.scrollTo(0,0)}catch(_){}}}},
+    h("button",{className:"m-back btn sm",onClick:e=>{e.stopPropagation();setMOpen(false);try{window.scrollTo(0,0)}catch(_){}}},"← BACK TO LIST"),
     h("div",{className:"split-list"},
       h("div",{style:{padding:"12px 12px 10px",borderBottom:"2px solid var(--line)"}},
         h("div",{className:"eyebrow",style:{marginBottom:6}},"ACCOUNT RECON"),
@@ -3401,7 +3402,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.55 \u00b7 JUL 19 2026 \u00b7 FULL BLEED")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.57 \u00b7 JUL 19 2026 \u00b7 POCKET FINAL")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
