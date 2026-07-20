@@ -2714,7 +2714,7 @@ function TForge({initialSection}){
 "use strict";
 /* ================= RECON (AI account research) ================= */
 function TRecon(){
-  const [mOpen,setMOpen]=useState(false);
+  const [mOpen,setMOpen]=useState(true);
   const [,force]=useState(0);
   const [company,setCompany]=useState("");
   const [person,setPerson]=useState("");
@@ -2765,7 +2765,7 @@ function TRecon(){
         AppState.recons.length?AppState.recons.map(r=>h("div",{key:r.id,className:"list-item"+(viewId===r.id?" on":""),onClick:()=>setViewId(r.id)},
           h("b",{style:{fontSize:12}},r.company),
           h("div",{className:"mono dim",style:{fontSize:9}},(r.person?r.person+" · ":"")+new Date(r.ts).toLocaleDateString())))
-        :h("div",{className:"mono dim",style:{padding:14,fontSize:10.5,lineHeight:1.6}},"No briefs yet. Run your first recon →"))),
+        :h("div",{className:"mono dim list-item",style:{padding:14,fontSize:10.5,lineHeight:1.6,cursor:"pointer"}},"No briefs yet. Run your first recon →"))),
     h("div",{className:"split-body"},
       h("div",{className:"anim-up",style:{maxWidth:780}},
         h(Blk,{title:"NEW RECON — 60 SECONDS OF PREP BEATS 6 MINUTES OF WINGING IT",color:"var(--steel)",style:{marginBottom:16}},
@@ -3402,7 +3402,7 @@ function Gate(){
       :h(F,null,
         h("div",{className:"mono dim",style:{fontSize:10.5,lineHeight:1.7,marginBottom:14}},"Cloud sync unavailable in this environment — running in local mode. Everything works; data stays on this device."),
         h("button",{className:"btn big primary",style:{width:"100%"},onClick:bootApp},"▶ ENTER VANTAGE"),
-      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.57 \u00b7 JUL 19 2026 \u00b7 POCKET FINAL")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
+      h("div",{className:"mono dim",style:{fontSize:8.5,marginTop:10,letterSpacing:"0.08em"}},window.BUILD_TAG=("BUILD v5.58 \u00b7 JUL 20 2026 \u00b7 RECON FIRST")),h("div",{className:"mq-flag mono"},"\u25cf POCKET LAYOUT ACTIVE"))),
     h("div",{className:"mono dim",style:{fontSize:8.5,textAlign:"center",marginTop:12,letterSpacing:".1em"}},"DIALS TODAY · MEETINGS NEXT QUARTER — THE 30-DAY RULE"));
 }
 (function init(){
